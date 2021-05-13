@@ -7,29 +7,22 @@ Created on Mon May 10 16:37:59 2021
 """
 
 from socket import AF_INET, socket, SOCK_DGRAM, SOCK_STREAM
+import sys
 
 class Gateway:
-    
-    socket_UDP = socket(AF_INET, SOCK_DGRAM)
-
-    address_UDP = ()
-    
-    socket_TCP = socket(AF_INET, SOCK_STREAM)
-    
-    address_TCP = ()
-    
-    devices = {}
-    
-    lista_mex = list()
-    
-    file_name = 'data_file.txt'
-    
-    
-    
     def __init__(self, ip_UDP, port_UDP, ip_TCP, port_TCP):
-        self.address_UDP = (ip_UDP, port_UDP)
-        self.address_TCP = (ip_TCP, port_TCP)
-        self.socket_UDP.bind(self.address_UDP)
+        self.filename = 'data_file.txt'
+        # UDP Server socket setup
+        self.socket_UDP = socket(AF_INET, SOCK_DGRAM)
+        self.socket_UDP.bind((ip_UDP, port_UDP))
+        print("UDP server up on port "+str(port_UDP))
+        # TCP Client socket setup
+        self.socket_TCP = socket(AF_INET, SOCK_STREAM)
+        try:
+            self.socket_TCP.connect((ip_TCP,port_TCP))
+        except Exception as data:
+            print (Exception,":",data)
+            sys.exit(0)
         '''try:
             self.socket_TCP.connect(self.address_TCP)
         except Exception as exc:
@@ -50,28 +43,37 @@ class Gateway:
             #print(self.lista_mex)
         #return self.lista_mex
     '''
-    def open_file(self):
-        with open(self.file_name, 'wb') as file:
+    # 
+    def get_file(self):
+        with open(self.filename, 'wb') as file:
             while True:
                 data = self.socket_UDP.recvfrom(4096)[0]
                 if not data:
                     break
                 else:
+                    print("saving received data..") 
                     file.write(data)
                     
-    
+    def forward_data(self):
+        with open(self.filename, 'rt') as file:
+            ip = file.readline()
+            for line in file.readlines()-ip:
+                line_data = line.split(" ")
+                print(line_data) #debug
+                self.send_message(self, ip, line_data[0], line_data[1], line_data[2])
+                
                     
-    
-    def send_message(self, message):
-        self.socket_TCP.send(message.encode())
+    def send_message(self, device_ip_addr, measurement_time, temperature, humidity):
+        self.socket_TCP.send((device_ip_addr+"-"+measurement_time+"-"+temperature+"-"+humidity).encode())
 
     def close_socket_TCP(self):
         self.socket_TCP.close()
         
 
 if __name__ == '__main__':
-    gateway = Gateway('localhost', 11111, 'localhost', 42000)
-    gateway.get_files()
+    gateway = Gateway('localhost', 10001, 'localhost', 42000)
+    while True:
+        gateway.get_file()
     '''for i in gateway.lista_mex:
         gateway.send_message(gateway.lista_mex[i])
     gateway.close_socket_TCP()'''

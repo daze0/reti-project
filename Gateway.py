@@ -3,11 +3,11 @@
 """
 Created on Mon May 10 16:37:59 2021
 
-@author: fedebruno
+@authors: daze and fedebruno
 """
 
 from socket import AF_INET, socket, SOCK_DGRAM, SOCK_STREAM
-import sys
+import sys, time
 
 class Gateway:
     def __init__(self, ip_UDP, port_UDP, ip_TCP, port_TCP):
@@ -23,58 +23,40 @@ class Gateway:
         except Exception as data:
             print (Exception,":",data)
             sys.exit(0)
-        '''try:
-            self.socket_TCP.connect(self.address_TCP)
-        except Exception as exc:
-            print(exc)'''
+        print("TCP connection over Cloud established..")
     
-    '''
-    def get_files(self):
-        while True:
-            print("ready\n")
-            data, device_address = self.socket_UDP.recvfrom(4096)
-            if self.devices.__contains__(device_address)==False:
-                self.devices.append(device_address)
-                i=0
-                    self.devices[device_address] = 'device_'+i+''
-                    i = i + 1
-            print(data.decode('utf-8'))
-            self.lista_mex.append(data)
-            #print(self.lista_mex)
-        #return self.lista_mex
-    '''
-    # 
     def get_file(self):
-        with open(self.filename, 'wb') as file:
-            while True:
-                data = self.socket_UDP.recvfrom(4096)[0]
-                if not data:
-                    break
-                else:
-                    print("saving received data..") 
+        while True:
+            data = self.socket_UDP.recvfrom(4096)[0]
+            if not data:
+                break
+            else:
+                with open(self.filename, 'wb') as file:
                     file.write(data)
+                print("data received and saved..")
                     
     def forward_data(self):
         with open(self.filename, 'rt') as file:
-            ip = file.readline()
-            for line in file.readlines()-ip:
+            lines = file.readlines()
+            print(lines)
+            ip = lines.pop(0)
+            print(ip)
+            for line in lines:
                 line_data = line.split(" ")
-                print(line_data) #debug
                 self.send_message(self, ip, line_data[0], line_data[1], line_data[2])
                 
                     
     def send_message(self, device_ip_addr, measurement_time, temperature, humidity):
-        self.socket_TCP.send((device_ip_addr+"-"+measurement_time+"-"+temperature+"-"+humidity).encode())
+        message = device_ip_addr+"-"+measurement_time+"-"+temperature+"-"+humidity
+        self.socket_TCP.send(message.encode())
 
     def close_socket_TCP(self):
         self.socket_TCP.close()
         
 
 if __name__ == '__main__':
-    gateway = Gateway('localhost', 10001, 'localhost', 42000)
+    gateway = Gateway('localhost', 11000, 'localhost', 41000)
     while True:
         gateway.get_file()
-    '''for i in gateway.lista_mex:
-        gateway.send_message(gateway.lista_mex[i])
-    gateway.close_socket_TCP()'''
-    
+        time.sleep(1)
+        gateway.forward_data()

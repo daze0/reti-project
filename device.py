@@ -3,7 +3,7 @@
 """
 Created on Mon May 10 17:07:38 2021
 
-@author: daze
+@author: daze and fedebruno
 """
 
 from socket import socket, AF_INET, SOCK_DGRAM
@@ -89,7 +89,7 @@ class device:
         self.sock.close()
         self.timer.do_run = False
 
-dev1 = device("192.168.1.10", ('localhost', 10001))
+dev1 = device("192.168.1.10", ('localhost', 11000))
 
 while dev1.get_data():
     continue

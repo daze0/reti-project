@@ -36,13 +36,13 @@ class Cloud:
     def signal_handler(self, signal, frame):
         print('Ctrl+c pressed: Cloud server shutting down..')
         try:
-            self.connection_socket.close() #XXX
+            self.connection_socket.close() 
             self.socket_TCP.close()
         finally:
             sys.exit(0)
         
 if __name__ == '__main__':
-    cloud = Cloud('localhost', 41000)
+    cloud = Cloud('localhost', 42000)
     print('Cloud server on..')
     cloud.get_file()
     signal.signal(signal.SIGINT, cloud.signal_handler)

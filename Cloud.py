@@ -21,7 +21,7 @@ class Cloud:
         # By default connection_socket is set to server socket
         self.connection_socket = self.socket_TCP
     
-    def get_file(self):
+    def get_message(self):
         while True:
             print('READY')
             self.connection_socket, address = self.socket_TCP.accept()
@@ -42,9 +42,9 @@ class Cloud:
             sys.exit(0)
         
 if __name__ == '__main__':
-    cloud = Cloud('localhost', 42000)
+    cloud = Cloud('localhost', 42004)
     print('Cloud server on..')
-    cloud.get_file()
+    cloud.get_message()
     signal.signal(signal.SIGINT, cloud.signal_handler)
     cloud.socket_TCP.close()
     

@@ -38,7 +38,7 @@ class Gateway:
                 print('received %s bytes from %s' % (len(data), address))
                 print('data:\n'+data.decode())
                 print('cumulative data:\n'+full_msg)
-                self.forward_data(data, address)
+                self.forward_data(data.decode(), address)
                     
     def forward_data(self, databox, dest_addr):
         ''' databox: 
@@ -50,12 +50,12 @@ class Gateway:
             \   timeN temperatureN humidityN   \
             ------------------------------------
         '''
-        lines = databox.decode().split("\n")
+        lines = databox.split("\n")
         print("forwarding data to " + str(dest_addr))
-        ip = lines[0]
+        ip = str(lines[0])
         lines.remove(ip)
         lines.remove('') #EOF
-        print(lines)
+        print(str(lines))
         for line in lines:
             line_data = line.split(" ")
             self.send_message(ip, line_data[0], line_data[1], line_data[2])
@@ -73,7 +73,7 @@ class Gateway:
         
 
 if __name__ == '__main__':
-    gateway = Gateway('localhost', 12000, 'localhost', 42000)
+    gateway = Gateway('localhost', 12003, 'localhost', 42004)
     signal.signal(signal.SIGINT, gateway.signal_handler)
     while True:
         gateway.get_file()

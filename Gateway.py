@@ -56,24 +56,22 @@ class Gateway:
         lines.remove(ip)
         lines.remove('') #EOF
         print(str(lines))
-        if len(lines) > 4096:
-            self.sendline(ip, lines)
+        data_size = len(str(lines).encode())
+        if data_size < 4096:
+            self.send_message(ip, lines, "singlepkt")
         else:
             self.send_message(ip, lines)
                 
-    def send_message(self, device_ip_addr, lines):
+    def send_message(self, device_ip_addr, lines, flag):
         message = ""
         for line in lines:
             line_data = line.split(" ")
-            message += device_ip_addr+" "+line_data[0]+" "+line_data[1]+" "+line_data[2]+"\n"
+            if flag == 'singlepkt':
+                message = device_ip_addr+" "+line_data[0]+" "+line_data[1]+" "+line_data[2]+"\n"
+            else:
+                message += device_ip_addr+" "+line_data[0]+" "+line_data[1]+" "+line_data[2]+"\n"
         self.socket_TCP.send(message.encode())
-
-    # ALERT
-    def send_line(self, device_ip_addr, lines):
-        for line in lines:
-            line_data = line.split(" ")
-            message = device_ip_addr+" "+line_data[0]+" "+line_data[1]+" "+line_data[2]
-            self.socket_TCP.send(message.encode())
+            
     def signal_handler(self, signal, frame):
         print('Ctrl+c pressed: sockets shutting down..')
         try:

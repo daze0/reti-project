@@ -26,9 +26,10 @@ class Cloud:
         print('READY')
         try:
             data = self.connection_socket.recv(4096)
+            # Loop keeps going until there are no more data segments
             while data: 
-                print('received %s bytes from %s' % (len(data), address)) 
-                print('data:\n' + data.decode())
+                print('data received(%s bytes from %s):\n%s' % (len(data), address, data.decode()))
+                # Receive next iteration data
                 data = self.connection_socket.recv(4096)
         except Exception as exc:
             print('Errore   ' + exc)
@@ -47,6 +48,6 @@ if __name__ == '__main__':
     print('Cloud server on..')
     while True:
         cloud.get_message()
-        signal.signal(signal.SIGINT, cloud.signal_handler)
+    signal.signal(signal.SIGINT, cloud.signal_handler)
     cloud.socket_TCP.close()
     

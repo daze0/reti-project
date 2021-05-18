@@ -56,14 +56,24 @@ class Gateway:
         lines.remove(ip)
         lines.remove('') #EOF
         print(str(lines))
+        if len(lines) > 4096:
+            self.sendline(ip, lines)
+        else:
+            self.send_message(ip, lines)
+                
+    def send_message(self, device_ip_addr, lines):
+        message = ""
         for line in lines:
             line_data = line.split(" ")
-            self.send_message(ip, line_data[0], line_data[1], line_data[2])
-                
-    def send_message(self, device_ip_addr, measurement_time, temperature, humidity):
-        message = device_ip_addr+"-"+measurement_time+"-"+temperature+"-"+humidity
+            message += device_ip_addr+" "+line_data[0]+" "+line_data[1]+" "+line_data[2]+"\n"
         self.socket_TCP.send(message.encode())
 
+    # ALERT
+    def send_line(self, device_ip_addr, lines):
+        for line in lines:
+            line_data = line.split(" ")
+            message = device_ip_addr+" "+line_data[0]+" "+line_data[1]+" "+line_data[2]
+            self.socket_TCP.send(message.encode())
     def signal_handler(self, signal, frame):
         print('Ctrl+c pressed: sockets shutting down..')
         try:
@@ -73,7 +83,7 @@ class Gateway:
         
 
 if __name__ == '__main__':
-    gateway = Gateway('localhost', 12003, 'localhost', 42004)
+    gateway = Gateway('localhost', 12000, 'localhost', 42000)
     signal.signal(signal.SIGINT, gateway.signal_handler)
     while True:
         gateway.get_file()

@@ -9,10 +9,12 @@ Created on Mon May 10 16:37:59 2021
 from socket import AF_INET, socket, SOCK_DGRAM, SOCK_STREAM
 import sys, time
 import signal
+from threading import Thread
 
 
 class Gateway:
     def __init__(self, ip_UDP, port_UDP, ip_TCP, port_TCP):
+        self.clients = {}
         self.filename = 'data_file.txt'
         # UDP Server socket setup
         self.socket_UDP = socket(AF_INET, SOCK_DGRAM)
@@ -26,19 +28,31 @@ class Gateway:
             print (Exception,":",data)
             sys.exit(0)
         print("TCP connection over Cloud established..")
-    
+        
     def get_file(self):
-        full_msg = str()
+        t = Thread(target=self.manage_client)
+        t.start()
+        t.join()
+    
+    def manage_client(self, data_pool):
+        # First receive helps to identify current client
+        # Valid clients: the ones who send data
+        first_data, curr_address = self.socket_UDP.recvfrom(4096)
+        # Add current client address to the dictionary
+        self.clients[curr_address[0]] = curr_address[1] 
         while True:
             data, address = self.socket_UDP.recvfrom(4096)
             if not data:
                 break
+            elif address != curr_address:
+                #TODO: add data_pool dictionary to implementation
+                continue
             else:
-                full_msg += data.decode()
-                print('received %s bytes from %s' % (len(data), address))
-                print('data:\n'+data.decode())
-                print('cumulative data:\n'+full_msg)
-                self.forward_data(data.decode(), address)
+                # Valid clients: the ones who send data
+                data = data.decode() # ???
+                print('received %s bytes from %s' % (len(data.encode()), address))
+                print('data:\n'+data)
+                self.forward_data(data, address)
                     
     def forward_data(self, databox, dest_addr):
         ''' databox: 
@@ -89,9 +103,8 @@ class Gateway:
         
 
 if __name__ == '__main__':
-    gateway = Gateway('localhost', 12000, 'localhost', 42000)
+    gateway = Gateway('localhost', 13000, 'localhost', 42000)
     signal.signal(signal.SIGINT, gateway.signal_handler)
     while True:
         gateway.get_file()
         time.sleep(1)
-        gateway.forward_data()

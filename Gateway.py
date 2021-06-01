@@ -33,12 +33,13 @@ class Gateway:
             sys.exit(0)
         print("TCP connection over Cloud established..")
         
+    #Creates a thread that receives data
     def get_file(self):
+        
         t = Thread(target=self.manage_client)
         t.start()
         t.join()
         
-    
     def manage_client(self):
         # First receive helps to identify current client
         # Valid clients: the ones who send data
@@ -52,7 +53,6 @@ class Gateway:
                 self.pick_pending(curr_address)
                 break
             elif address != curr_address:
-                #TODO: add data_pool dictionary to implementation
                 self.data_pool[address] = data
                 continue
             else:
@@ -67,8 +67,8 @@ class Gateway:
     def pick_pending(self, curr_addr):
         for k in self.data_pool.keys():
             if k == curr_addr:
-                self.print_received_data(self.data_pool[k]) 
-                self.forward_data(self.data_pool[k], curr_addr)
+                self.print_received_data(self.data_pool[k], k) 
+                self.forward_data(self.data_pool[k], k)
                     
     def forward_data(self, databox, dest_addr):
         ''' databox: 
@@ -80,6 +80,7 @@ class Gateway:
             \   timeN temperatureN humidityN   \
             ------------------------------------
         '''
+        databox = databox.decode()
         lines = databox.split("\n")
         print("forwarding data to " + str(dest_addr))
         ip = str(lines[0])
@@ -119,8 +120,8 @@ class Gateway:
         
 
 if __name__ == '__main__':
-    gateway = Gateway('localhost', 13000, 'localhost', 42000)
+    gateway = Gateway('localhost', 12000, 'localhost', 42000)
     signal.signal(signal.SIGINT, gateway.signal_handler)
     while True:
         gateway.get_file()
-        time.sleep(1)
+        time.sleep(.5)

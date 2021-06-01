@@ -12,7 +12,7 @@ from threading import Thread, currentThread
 import os
 
 class device:
-    def __init__(self, device_ip, device_mac, server_addr): #deviceip, ('192.168.1.1', 10000)
+    def __init__(self, device_ip, device_mac, server_addr): 
         # Socket used to connect to the GATEWAY
         self.sock = socket(AF_INET, SOCK_DGRAM)
         # timer thread flag

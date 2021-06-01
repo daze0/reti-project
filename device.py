@@ -12,7 +12,7 @@ from threading import Thread, currentThread
 import os
 
 class device:
-    def __init__(self, device_ip, server_addr): #deviceip, ('192.168.1.1', 10000)
+    def __init__(self, device_ip, device_mac, server_addr): #deviceip, ('192.168.1.1', 10000)
         # Socket used to connect to the GATEWAY
         self.sock = socket(AF_INET, SOCK_DGRAM)
         # timer thread flag
@@ -33,6 +33,8 @@ class device:
         self.BUFSIZE = 4096
         # Device IP as file header
         self.ip = device_ip
+        # Device MAC address
+        self.mac = device_mac
         with open(self.filename, "wt") as f:
             f.write(self.ip+"\n")
         # Start timer thread
@@ -58,12 +60,12 @@ class device:
     # Get a measurement from the user
     # Write it on data file
     def get_data(self):
-        print("\nNew measurement: ") 
+        print("\nNew measurement('q' to quit): ") 
         t = time.localtime()
         current_time = time.strftime("%H:%M:%S", t)
         temperature = str(input("\nTemperature(°C): "))
         humidity = str(input("Humidity(%): "))
-        if temperature == "-100" and humidity == "-100": 
+        if temperature == "q" and humidity == "q": 
             return False
         else:
             with open(self.filename, "a") as f:
@@ -89,7 +91,7 @@ class device:
         self.sock.close()
         self.timer.do_run = False
 
-dev1 = device("192.168.1.12", ('localhost', 12000))
+dev1 = device("192.168.1.12", "36:DF:28:FC:D1:67", ('localhost', 12000))
 
 while dev1.get_data():
     continue

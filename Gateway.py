@@ -13,7 +13,7 @@ from threading import Thread
 
 
 class Gateway:
-    def __init__(self, ip_UDP, port_UDP, ip_TCP, port_TCP):
+    def __init__(self, ip_port_UDP, ip_port_TCP, ip_devnet, ip_cloudnet, mac_addr):
         # Attribute data_pool is a dictionary that contains pending
         # fragments from iterations of manage_client() while True loop.
         self.data_pool = {}
@@ -120,7 +120,8 @@ class Gateway:
         
 
 if __name__ == '__main__':
-    gateway = Gateway('localhost', 12000, 'localhost', 42000)
+    gateway = Gateway(('localhost', 12000), ('localhost', 42000), 
+                      '192.168.1.1', '10.10.10.1', '7A:D8:DD:50:8B:42')
     signal.signal(signal.SIGINT, gateway.signal_handler)
     while True:
         gateway.get_file()

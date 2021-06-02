@@ -72,7 +72,28 @@ class Gateway:
         lines = databox.split("\n")
         print("File split in lines..")
         lines.remove('') #EOF
-        return lines
+        headers = lines[0]
+        # Packet Headers retrieval
+        source_ip = headers[0:12]
+        destination_ip = headers[12:22]
+        source_mac = headers[22:39]
+        destination_mac = headers[39:57]
+        lines.remove(headers)
+        # Packet Message retrieval
+        message = ""
+        for line in lines:
+            message = message + line + '\n'
+        # Important infos
+        print("The packed received:\n Source MAC address: {source_mac}, Destination MAC address: {destination_mac}".format(source_mac=source_mac, destination_mac=destination_mac))
+        print("\nSource IP address: {source_ip}, Destination IP address: {destination_ip}".format(source_ip=source_ip, destination_ip=destination_ip))
+        print("\nMessage: " + message)
+        # Packet Header recomposing
+        ethernet_header = self.mac + self.arp_table_mac[destination_ip]
+        IP_header = source_ip + destination_ip
+        new_headers = ethernet_header + IP_header
+        # Compose message and send
+        self.send_message(self.arp_table_socket[destination_ip], new_headers, 
+                          source_ip, lines)
                 
     def send_message(self, dst_socket, headers, device_ip_addr, lines):
         message = ""

@@ -13,7 +13,9 @@ from threading import Thread
 
 
 class Gateway:
-    def __init__(self, ip_port_UDP, ip_port_TCP, ip_devnet, ip_cloudnet, mac_addr):
+    def __init__(self, ip_port_UDP, ip_port_TCP, ip_devnet, ip_cloudnet, mac_addr, cloud_addr):
+        # ARP table creation
+        self.arp_table = {cloud_addr[0] : cloud_addr[1]}
         # Set the gateway's 2 network interfaces' ips
         self.ip_devnet = ip_devnet 
         self.ip_cloudnet = ip_cloudnet
@@ -126,7 +128,8 @@ class Gateway:
 
 if __name__ == '__main__':
     gateway = Gateway(('localhost', 12000), ('localhost', 42000), 
-                      '192.168.1.1', '10.10.10.1', '7A:D8:DD:50:8B:42')
+                      '192.168.1.1', '10.10.10.1', '7A:D8:DD:50:8B:42',
+                      ('10.10.10.2', 'FE:D7:0B:E6:43:C5'))
     signal.signal(signal.SIGINT, gateway.signal_handler)
     while True:
         gateway.get_file()

@@ -97,7 +97,8 @@ class device:
         self.sock.close()
         self.timer.do_run = False
 
-dev1 = device("192.168.1.12", "36:DF:28:FC:D1:67", ('localhost', 12000), '7A:D8:DD:50:8B:42', '10.10.10.2')
+dev1 = device("192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', 12000), 
+              '7A:D8:DD:50:8B:42', '10.10.10.2')
 
 while dev1.get_data():
     continue

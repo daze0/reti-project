@@ -85,7 +85,7 @@ class Gateway:
             line_data = line.split(" ")
             current = device_ip_addr+" "+line_data[0]+" "+line_data[1]+" "+line_data[2]+"\n"
             # Bulk up message with current new message part
-            if len(message.encode()) < 4096:
+            if self.is_bulkable(headers+'\n'+message):
                message += current
             # Segmentation 
             else:
@@ -98,6 +98,9 @@ class Gateway:
         # Message never gets segmented
         if not sent:
             dst_socket.send((headers+'\n'+message).encode())
+            
+    def is_bulkable(msg):
+        return len(msg.encode()) < 4096
             
     def signal_handler(self, signal, frame):
         print('Ctrl+c pressed: sockets shutting down..')

@@ -24,18 +24,22 @@ class Cloud:
         self.connection_socket = self.socket_TCP
     
     def get_message(self):
-        self.connection_socket, address = self.socket_TCP.accept()
-        print('READY')
-        try:
-            data = self.connection_socket.recv(4096)
-            # Loop keeps going until there are no more data segments
-            while data: 
-                print('data received(%s bytes from %s):\n%s' % (len(data), address, data.decode()))
-                # Receive next iteration data
+        while True:
+            self.connection_socket, address = self.socket_TCP.accept()
+            if self.connection_socket != None:
+                print('READY')
+                break
+        while True:
+            try:
                 data = self.connection_socket.recv(4096)
-        except Exception as exc:
-            print('Errore   ' + exc)
-            self.connection_socket.close()
+                # Loop keeps going until there are no more data segments
+                while data: 
+                    print('data received(%s bytes from %s):\n%s' % (len(data), address, data.decode()))
+                    # Receive next iteration data
+                    data = self.connection_socket.recv(4096)
+            except Exception as exc:
+                print('Errore   ' + exc)
+                self.connection_socket.close()
                 
     def signal_handler(self, signal, frame):
         print('Ctrl+c pressed: Cloud server shutting down..')
@@ -48,8 +52,7 @@ class Cloud:
 if __name__ == '__main__':
     cloud = Cloud(('localhost', 42000), '10.10.10.2', 'FE:D7:0B:E6:43:C5')
     print('Cloud server on..')
-    while True:
-        cloud.get_message()
     signal.signal(signal.SIGINT, cloud.signal_handler)
+    cloud.get_message()
     cloud.socket_TCP.close()
     

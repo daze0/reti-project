@@ -40,7 +40,7 @@ class device:
         # HEADERS creation
         IP_header = self.ip + target_ip
         ethernet_header = self.mac + self.router_mac
-        self.headers = ethernet_header + IP_header
+        self.headers = IP_header + ethernet_header
         with open(self.filename, "wt") as f:
             f.write(self.headers+"\n")
         # Start timer thread

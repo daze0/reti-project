@@ -109,5 +109,4 @@ if __name__ == '__main__':
                       '192.168.1.1', '10.10.10.1', '7A:D8:DD:50:8B:42',
                       ('10.10.10.2', 'FE:D7:0B:E6:43:C5'))
     signal.signal(signal.SIGINT, gateway.signal_handler)
-    while True:
-        gateway.manage_client()
+    gateway.manage_client()

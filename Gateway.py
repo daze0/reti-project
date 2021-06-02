@@ -89,7 +89,7 @@ class Gateway:
             # Bulk up message with current new message part
             if len(message.encode()) < 4096:
                message += current
-            # Segmentation
+            # Segmentation 
             else:
                 if previous != "":
                     message = message.replace(previous, "")

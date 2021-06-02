@@ -10,9 +10,10 @@ from socket import socket, AF_INET, SOCK_DGRAM
 import time
 from threading import Thread, currentThread
 import os
+import Measurement
 
 class device:
-    def __init__(self, device_ip, device_mac, addr, router_mac, target_ip): 
+    def __init__(self, filename, device_ip, device_mac, addr, router_mac, target_ip): 
         # Socket used to connect to the GATEWAY
         self.sock = socket(AF_INET, SOCK_DGRAM)
         # timer thread flag
@@ -26,7 +27,7 @@ class device:
         # Initially set at -1
         self.data_dump_timer = -1
         # This is the filename of the file that contains 24h worth of data 
-        self.filename = "data.txt"
+        self.filename = filename
         # CONSTANTS
         self.SEP = " "
         self.PERIOD = 25 # secs
@@ -43,25 +44,17 @@ class device:
         self.headers = IP_header + ethernet_header
         with open(self.filename, "wt") as f:
             f.write(self.headers+"\n")
-        # Start timer thread
-        self.timer = Thread(target=self.checktimer)
-        self.timer.start()
-    
-    # Periodically send data to GATEWAY
-    def checktimer(self):
-        t = currentThread()
-        while getattr(t, "do_run", True):
-            # check if timer has already been set
-            if self.data_dump_timer == -1:
-                self.data_dump_timer = time.time()
-            #if set verify if elapsed time is equal or greater than period break cycle
-            if time.time()-self.data_dump_timer >= self.PERIOD:
+        # Periodically send data to GATEWAY
+        self.timer = time.time()
+        while True:
+            if time.time() - self.timer >= self.PERIOD:
                 self.send()
-                self.data_dump_timer = -1
+                self.timer = time.time()
                 os.remove(self.filename)
                 with open(self.filename, "wt") as f:
-                    f.write(self.headers+"\n")   
-            time.sleep(1)
+                    f.write(self.headers+"\n")
+            self.get_data()
+            time.sleep(5)
                 
     # Get a measurement from the user
     # Write it on data file
@@ -77,6 +70,18 @@ class device:
             with open(self.filename, "a") as f:
                 f.write(current_time+self.SEP+temperature+self.SEP+humidity+"\n")
             return True
+        
+    # Get a random measurement
+    # Write it on data file
+    def get_random_data(self):
+        print("\nNew measurement: ")
+        measure = Measurement.Measurement()
+        with open(self.filename, "a") as f:
+            f.write(measure.get_time()+self.SEP+measure.get_temperature()+self.SEP+measure.get_humidity()+"\n")
+            print("Time: "+measure.get_time())
+            print("Temperature: "+measure.get_temperature())
+            print("Humidity: "+measure.get_humidity())
+        return True
         
     # Send data file to GATEWAY
     def send(self):
@@ -97,7 +102,7 @@ class device:
         self.sock.close()
         self.timer.do_run = False
 
-dev1 = device("192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', 12000), 
+dev1 = device("data.txt", "192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', 12000), 
               '7A:D8:DD:50:8B:42', '10.10.10.2')
 
 while dev1.get_data():

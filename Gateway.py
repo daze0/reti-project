@@ -17,8 +17,6 @@ class Gateway:
         self.ip_cloudnet = ip_cloudnet
         # Set gateway's mac address
         self.mac = mac_addr
-        #???
-        self.filename = 'data_file.txt'
         # UDP Server socket setup
         self.socket_UDP = socket(AF_INET, SOCK_DGRAM)
         self.socket_UDP.bind((ip_port_UDP))
@@ -93,13 +91,13 @@ class Gateway:
             else:
                 if previous != "":
                     message = message.replace(previous, "")
-                    self.dst_socket.send((headers+'\n'+message).encode())
+                    dst_socket.send((headers+'\n'+message).encode())
                     sent = True
                     message = previous + current
             previous = current
         # Message never gets segmented
         if not sent:
-            self.dst_socket.send((headers+'\n'+message).encode())
+            dst_socket.send((headers+'\n'+message).encode())
             
     def signal_handler(self, signal, frame):
         print('Ctrl+c pressed: sockets shutting down..')

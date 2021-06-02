@@ -14,6 +14,11 @@ from threading import Thread
 
 class Gateway:
     def __init__(self, ip_port_UDP, ip_port_TCP, ip_devnet, ip_cloudnet, mac_addr):
+        # Set the gateway's 2 network interfaces' ips
+        self.ip_devnet = ip_devnet 
+        self.ip_cloudnet = ip_cloudnet
+        # Set gateway's mac address
+        self.mac = mac_addr
         # Attribute data_pool is a dictionary that contains pending
         # fragments from iterations of manage_client() while True loop.
         self.data_pool = {}
@@ -22,16 +27,16 @@ class Gateway:
         self.filename = 'data_file.txt'
         # UDP Server socket setup
         self.socket_UDP = socket(AF_INET, SOCK_DGRAM)
-        self.socket_UDP.bind((ip_UDP, port_UDP))
-        print("UDP server up on port "+str(port_UDP))
+        self.socket_UDP.bind((ip_port_UDP))
+        print("UDP server up on port "+str(ip_port_UDP[1]))
         # TCP Client socket setup
         self.socket_TCP = socket(AF_INET, SOCK_STREAM)
         try:
-            self.socket_TCP.connect((ip_TCP,port_TCP))
+            self.socket_TCP.connect((ip_port_TCP))
         except Exception as data:
             print (Exception,":",data)
             sys.exit(0)
-        print("TCP connection over Cloud established..")
+        print("TCP connection over Cloud established on port "+str(ip_port_TCP[1]))
         
     #Creates a thread that receives data
     def get_file(self):

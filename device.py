@@ -12,14 +12,14 @@ from threading import Thread, currentThread
 import os
 
 class device:
-    def __init__(self, device_ip, device_mac, server_addr): 
+    def __init__(self, device_ip, device_mac, addr, router_mac, target_ip): 
         # Socket used to connect to the GATEWAY
         self.sock = socket(AF_INET, SOCK_DGRAM)
         # timer thread flag
         #self.socket_on = True
         # Arg type validity check
         try:
-            self.server_address = tuple(server_addr)
+            self.address = tuple(addr)
         except TypeError as info:
             print(info)
         # Useful for sending data periodically to the server
@@ -35,8 +35,14 @@ class device:
         self.ip = device_ip
         # Device MAC address
         self.mac = device_mac
+        # Router MAC address
+        self.router_mac = router_mac
+        # HEADERS creation
+        IP_header = self.ip + target_ip
+        ethernet_header = self.mac + self.router_mac
+        self.headers = IP_header + ethernet_header
         with open(self.filename, "wt") as f:
-            f.write(self.ip+"\n")
+            f.write(self.headers+"\n")
         # Start timer thread
         self.timer = Thread(target=self.checktimer)
         self.timer.start()
@@ -54,7 +60,7 @@ class device:
                 self.data_dump_timer = -1
                 os.remove(self.filename)
                 with open(self.filename, "wt") as f:
-                    f.write(self.ip+"\n")   
+                    f.write(self.headers+"\n")   
             time.sleep(1)
                 
     # Get a measurement from the user
@@ -81,7 +87,7 @@ class device:
                     break
                 else:
                     try:
-                        self.sock.sendto(r, self.server_address)
+                        self.sock.sendto(r, self.address)
                     except Exception as info:
                         print(info)
                         
@@ -91,7 +97,7 @@ class device:
         self.sock.close()
         self.timer.do_run = False
 
-dev1 = device("192.168.1.12", "36:DF:28:FC:D1:67", ('localhost', 12000))
+dev1 = device("192.168.1.12", "36:DF:28:FC:D1:67", ('localhost', 12000), '7A:D8:DD:50:8B:42', '10.10.10.2')
 
 while dev1.get_data():
     continue

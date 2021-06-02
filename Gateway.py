@@ -40,23 +40,7 @@ class Gateway:
             data, addr = self.socket_UDP.recvfrom(4096)
             data = data.decode() #???
             if data:
-                # Packet Headers and Content retrieval
-                source_ip = data[0:12]
-                destination_ip = data[12:22]
-                source_mac = data[22:39]
-                destination_mac = data[39:57]
-                message = data[57:]
-                # Important infos
-                print("The packed received:\n Source MAC address: {source_mac}, Destination MAC address: {destination_mac}".format(source_mac=source_mac, destination_mac=destination_mac))
-                print("\nSource IP address: {source_ip}, Destination IP address: {destination_ip}".format(source_ip=source_ip, destination_ip=destination_ip))
-                print("\nMessage: " + message)
-                # Packet Header recomposing
-                ethernet_header = self.mac + self.arp_table_mac[destination_ip]
-                IP_header = source_ip + destination_ip
-                headers = ethernet_header + IP_header
-                # Compose message and send
-                self.send_message(self.arp_table_socket[destination_ip], headers, 
-                                  source_ip, self.data_split(message))
+                self.data_split(data)
             time.sleep(.5)
                     
     def data_split(self, databox):

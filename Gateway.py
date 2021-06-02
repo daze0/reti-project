@@ -80,7 +80,7 @@ class Gateway:
             \   timeN temperatureN humidityN   \
             ------------------------------------
         '''
-        lines = databox.split("\n")
+        lines = databox.decode().split("\n")
         print("forwarding data to " + str(dest_addr))
         ip = str(lines[0])
         lines.remove(ip)
@@ -119,7 +119,7 @@ class Gateway:
         
 
 if __name__ == '__main__':
-    gateway = Gateway('localhost', 13000, 'localhost', 42000)
+    gateway = Gateway('localhost', 13010, 'localhost', 42010)
     signal.signal(signal.SIGINT, gateway.signal_handler)
     while True:
         gateway.get_file()

@@ -7,9 +7,8 @@ Created on Mon May 10 17:07:38 2021
 """
 
 from socket import socket, AF_INET, SOCK_DGRAM
-import time
 from threading import Thread, currentThread
-import os
+import time, os, Measurement
 
 class device:
     def __init__(self, device_ip, server_addr): #deviceip, ('192.168.1.1', 10000)
@@ -38,6 +37,10 @@ class device:
         # Start timer thread
         self.timer = Thread(target=self.checktimer)
         self.timer.start()
+        while True:
+            self.get_data()
+            time.sleep(5)
+            continue
     
     # Periodically send data to GATEWAY
     def checktimer(self):
@@ -58,17 +61,14 @@ class device:
     # Get a measurement from the user
     # Write it on data file
     def get_data(self):
-        print("\nNew measurement: ") 
-        t = time.localtime()
-        current_time = time.strftime("%H:%M:%S", t)
-        temperature = str(input("\nTemperature(°C): "))
-        humidity = str(input("Humidity(%): "))
-        if temperature == "-100" and humidity == "-100": 
-            return False
-        else:
-            with open(self.filename, "a") as f:
-                f.write(current_time+self.SEP+temperature+self.SEP+humidity+"\n")
-            return True
+        print("\nNew measurement: ")
+        measure = Measurement.Measurement()
+        with open(self.filename, "a") as f:
+            f.write(measure.get_time()+self.SEP+measure.get_temperature()+self.SEP+measure.get_humidity()+"\n")
+            print("Time: "+measure.get_time())
+            print("Temperature: "+measure.get_temperature())
+            print("Humidity: "+measure.get_humidity())
+        return True
         
     # Send data file to GATEWAY
     def send(self):
@@ -89,12 +89,13 @@ class device:
         self.sock.close()
         self.timer.do_run = False
 
-dev1 = device("192.168.1.12", ('localhost', 13000))
 
-while dev1.get_data():
-    continue
+dev1 = device("192.168.1.12", ('localhost', 13010))
+
+#while dev1.get_data():
+#   continue
         
-dev1.close_sock()
+#dev1.close_sock()
         
 
     

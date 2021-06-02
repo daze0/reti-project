@@ -44,7 +44,7 @@ class Cloud:
             sys.exit(0)
         
 if __name__ == '__main__':
-    cloud = Cloud('localhost', 42000)
+    cloud = Cloud('localhost', 42010)
     print('Cloud server on..')
     while True:
         cloud.get_message()

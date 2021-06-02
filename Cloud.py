@@ -32,11 +32,22 @@ class Cloud:
         while True:
             try:
                 data = self.connection_socket.recv(4096)
-                # Loop keeps going until there are no more data segments
-                while data: 
-                    print('data received(%s bytes from %s):\n%s' % (len(data), address, data.decode()))
-                    # Receive next iteration data
-                    data = self.connection_socket.recv(4096)
+                # Important infos
+                print('data received(%s bytes from %s):\n%s' % (len(data), address, data.decode()))
+                # Pkt headers 'n' message retrieval
+                data = data.decode() #???
+                source_ip = data[0:12]
+                destination_ip = data[12:22]
+                source_mac = data[22:39]
+                destination_mac = data[39:57]
+                message = data[57:]
+                # Important infos for debugging
+                print("\nPacket integrity:\ndestination MAC address matches client 1 MAC address: {mac}".format(mac=(self.mac == destination_mac)))
+                print("\ndestination IP address matches client 1 IP address: {mac}".format(mac=(self.ip == destination_ip)))
+                print("\nThe packed received:\n Source MAC address: {source_mac}, Destination MAC address: {destination_mac}".format(source_mac=source_mac, destination_mac=destination_mac))
+                print("\nSource IP address: {source_ip}, Destination IP address: {destination_ip}".format(source_ip=source_ip, destination_ip=destination_ip))
+                # Final measurement message output
+                print("\nMessage: " + message)
             except Exception as exc:
                 print('Errore   ' + exc)
                 self.connection_socket.close()

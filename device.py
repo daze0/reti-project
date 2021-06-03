@@ -40,10 +40,8 @@ class device:
         # HEADERS creation
         IP_header = self.ip + target_ip
         ethernet_header = self.mac + self.router_mac
-        epoch_time = time.time()
-        self.headers = IP_header + ethernet_header + str(epoch_time)
-        with open(self.filename, "wt") as f:
-            f.write(self.headers+"\n")
+        headers = IP_header + ethernet_header
+        self.write_headers(headers)
         # Periodically send data to GATEWAY
         self.timer = time.time()
         while True:
@@ -51,10 +49,16 @@ class device:
                 self.send()
                 self.timer = time.time()
                 os.remove(self.filename)
-                with open(self.filename, "wt") as f:
-                    f.write(self.headers+"\n")
+                self.write_headers(headers)
             self.get_random_data()
             time.sleep(5)
+            
+    def write_headers(self, headers):
+        epoch_time = time.time()
+        headers = headers + str(epoch_time)
+        self.headers = headers
+        with open(self.filename, "wt") as f:
+            f.write(headers+"\n")
                 
     # Get a measurement from the user
     # Write it on data file

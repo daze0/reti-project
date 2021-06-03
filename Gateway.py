@@ -74,7 +74,8 @@ class Gateway:
         # Packet Header recomposing
         ethernet_header = self.mac + self.arp_table_mac[destination_ip]
         IP_header = source_ip + destination_ip
-        new_headers = ethernet_header + IP_header
+        epoch_time = str(time.time())
+        new_headers = IP_header + ethernet_header + epoch_time
         # Compose message and send
         self.send_message(self.arp_table_socket[destination_ip], new_headers, 
                           source_ip, lines)
@@ -113,7 +114,7 @@ class Gateway:
         
 
 if __name__ == '__main__':
-    gateway = Gateway(('localhost', 15000), ('localhost', 42000), 
+    gateway = Gateway(('localhost', 12000), ('localhost', 42000), 
                       '192.168.1.1', '10.10.10.1', '7A:D8:DD:50:8B:42',
                       ('10.10.10.2', 'FE:D7:0B:E6:43:C5'))
     signal.signal(signal.SIGINT, gateway.signal_handler)

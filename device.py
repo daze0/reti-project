@@ -105,7 +105,7 @@ class device:
         self.sock.close()
         self.timer.do_run = False
 
-dev1 = device("data.txt", "192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', 15000), 
+dev1 = device("data.txt", "192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', 12000), 
               '7A:D8:DD:50:8B:42', '10.10.10.2')
         
 dev1.close_sock()

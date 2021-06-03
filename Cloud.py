@@ -12,6 +12,8 @@ import sys
 
 import signal
 
+import time
+
 class Cloud:        
     def __init__(self, ip_n_port, ip, mac_addr):
         self.mac = mac_addr
@@ -31,18 +33,24 @@ class Cloud:
                 # Important infos
                 print('data received(%s bytes from %s):\n%s' % (len(data), address, data.decode()))
                 # Pkt headers 'n' message retrieval
-                data = data.decode() #???
-                source_ip = data[0:12]
-                destination_ip = data[12:22]
-                source_mac = data[22:39]
-                destination_mac = data[39:57]
-                epoch_time = data[57:74]
-                message = data[74:]
+                data = data.decode() 
+                lines = data.split('\n')
+                lines.remove('') #EOF
+                headers = lines[0]
+                source_ip = headers[0:12]
+                destination_ip = headers[12:22]
+                source_mac = headers[22:39]
+                destination_mac = headers[39:57]
+                epoch_time = float(headers[57:74])
+                message = ""
+                for line in lines:
+                    message = message + line + '\n'
                 # Important infos for debugging
                 print("\nPacket integrity:\ndestination MAC address matches client 1 MAC address: {mac}".format(mac=(self.mac == destination_mac)))
                 print("\ndestination IP address matches client 1 IP address: {mac}".format(mac=(self.ip == destination_ip)))
                 print("\nThe packed received:\n Source MAC address: {source_mac}, Destination MAC address: {destination_mac}".format(source_mac=source_mac, destination_mac=destination_mac))
                 print("\nSource IP address: {source_ip}, Destination IP address: {destination_ip}".format(source_ip=source_ip, destination_ip=destination_ip))
+                print("\nEpoch time: {epochtime}, Time elapsed since packet timestamp: {elapsed_time}".format(epochtime=epoch_time, elapsed_time=time.time()-epoch_time))
                 # Final measurement message output
                 print("\nMessage: " + message)
             except Exception as exc:

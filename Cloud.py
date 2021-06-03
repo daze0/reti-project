@@ -1,8 +1,7 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Mon May 10 17:24:27 2021
-
 @author: fedebruno and daze
 """
 
@@ -75,15 +74,7 @@ class Cloud:
             sys.exit(0)
         
 if __name__ == '__main__':
-<<<<<<< HEAD
-<<<<<<< HEAD
-    cloud = Cloud('localhost', 42018)
-=======
-    cloud = Cloud(('localhost', 42000), '10.10.10.2', 'FE:D7:0B:E6:43:C5')
->>>>>>> 876fb503708eaacdd1dec9397c5fd0c3f55f946e
-=======
     cloud = Cloud(('localhost', 40000), '10.10.10.2', 'FE:D7:0B:E6:43:C5')
->>>>>>> 3cc03c2a330b4a181f53341ea415cd58e1a2629f
     print('Cloud server on..')
     signal.signal(signal.SIGINT, cloud.signal_handler)
     cloud.get_message()

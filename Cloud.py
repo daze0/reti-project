@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+ #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Mon May 10 17:24:27 2021
@@ -13,27 +13,44 @@ import sys
 import signal
 
 class Cloud:        
-    def __init__(self, ip_addr, port):
+    def __init__(self, ip_n_port, ip, mac_addr):
+        self.mac = mac_addr
+        self.ip = ip
         # TCP Server socket setup
         self.socket_TCP = socket(AF_INET, SOCK_STREAM)
-        self.socket_TCP.bind((ip_addr, port))
+        self.socket_TCP.bind((ip_n_port))
         self.socket_TCP.listen(3)
         # By default connection_socket is set to server socket
         self.connection_socket = self.socket_TCP
     
     def get_message(self):
-        self.connection_socket, address = self.socket_TCP.accept()
-        print('READY')
-        try:
-            data = self.connection_socket.recv(4096)
-            # Loop keeps going until there are no more data segments
-            while data: 
-                print('data received(%s bytes from %s):\n%s' % (len(data), address, data.decode()))
-                # Receive next iteration data
+        while True:
+            self.connection_socket, address = self.socket_TCP.accept()
+            if self.connection_socket != None:
+                print('READY')
+                break
+        while True:
+            try:
                 data = self.connection_socket.recv(4096)
-        except Exception as exc:
-            print('Errore   ' + exc)
-            self.connection_socket.close()
+                # Important infos
+                print('data received(%s bytes from %s):\n%s' % (len(data), address, data.decode()))
+                # Pkt headers 'n' message retrieval
+                data = data.decode() #???
+                source_ip = data[0:12]
+                destination_ip = data[12:22]
+                source_mac = data[22:39]
+                destination_mac = data[39:57]
+                message = data[57:]
+                # Important infos for debugging
+                print("\nPacket integrity:\ndestination MAC address matches client 1 MAC address: {mac}".format(mac=(self.mac == destination_mac)))
+                print("\ndestination IP address matches client 1 IP address: {mac}".format(mac=(self.ip == destination_ip)))
+                print("\nThe packed received:\n Source MAC address: {source_mac}, Destination MAC address: {destination_mac}".format(source_mac=source_mac, destination_mac=destination_mac))
+                print("\nSource IP address: {source_ip}, Destination IP address: {destination_ip}".format(source_ip=source_ip, destination_ip=destination_ip))
+                # Final measurement message output
+                print("\nMessage: " + message)
+            except Exception as exc:
+                print('Errore   ' + exc)
+                self.connection_socket.close()
                 
     def signal_handler(self, signal, frame):
         print('Ctrl+c pressed: Cloud server shutting down..')
@@ -44,10 +61,13 @@ class Cloud:
             sys.exit(0)
         
 if __name__ == '__main__':
+<<<<<<< HEAD
     cloud = Cloud('localhost', 42018)
+=======
+    cloud = Cloud(('localhost', 42000), '10.10.10.2', 'FE:D7:0B:E6:43:C5')
+>>>>>>> 876fb503708eaacdd1dec9397c5fd0c3f55f946e
     print('Cloud server on..')
-    while True:
-        cloud.get_message()
     signal.signal(signal.SIGINT, cloud.signal_handler)
+    cloud.get_message()
     cloud.socket_TCP.close()
     

@@ -16,8 +16,11 @@ class Gateway:
         self.ip_cloudnet = ip_cloudnet
         # Set gateway's mac address
         self.mac = mac_addr
+<<<<<<< HEAD
         #???
         self.filename = 'data_file.txt'
+=======
+>>>>>>> 876fb503708eaacdd1dec9397c5fd0c3f55f946e
         # UDP Server socket setup
         self.socket_UDP = socket(AF_INET, SOCK_DGRAM)
         self.socket_UDP.bind((ip_port_UDP))
@@ -39,6 +42,7 @@ class Gateway:
             data, addr = self.socket_UDP.recvfrom(4096)
             data = data.decode() #???
             if data:
+<<<<<<< HEAD
                 # Packet Headers and Content retrieval
                 source_ip = data[0:12]
                 destination_ip = data[12:22]
@@ -56,6 +60,9 @@ class Gateway:
                 # Compose message and send
                 self.send_message(self.arp_table_socket[destination_ip], headers, 
                                   source_ip, self.data_split(message))
+=======
+                self.data_split(data)
+>>>>>>> 876fb503708eaacdd1dec9397c5fd0c3f55f946e
             time.sleep(.5)
                     
     def data_split(self, databox):
@@ -71,7 +78,32 @@ class Gateway:
         lines = databox.split("\n")
         print("File split in lines..")
         lines.remove('') #EOF
+<<<<<<< HEAD
         return lines
+=======
+        headers = lines[0]
+        # Packet Headers retrieval
+        source_ip = headers[0:12]
+        destination_ip = headers[12:22]
+        source_mac = headers[22:39]
+        destination_mac = headers[39:57]
+        lines.remove(headers)
+        # Packet Message retrieval
+        message = ""
+        for line in lines:
+            message = message + line + '\n'
+        # Important infos
+        print("The packed received:\n Source MAC address: {source_mac}, Destination MAC address: {destination_mac}".format(source_mac=source_mac, destination_mac=destination_mac))
+        print("\nSource IP address: {source_ip}, Destination IP address: {destination_ip}".format(source_ip=source_ip, destination_ip=destination_ip))
+        print("\nMessage: " + message)
+        # Packet Header recomposing
+        ethernet_header = self.mac + self.arp_table_mac[destination_ip]
+        IP_header = source_ip + destination_ip
+        new_headers = ethernet_header + IP_header
+        # Compose message and send
+        self.send_message(self.arp_table_socket[destination_ip], new_headers, 
+                          source_ip, lines)
+>>>>>>> 876fb503708eaacdd1dec9397c5fd0c3f55f946e
                 
     def send_message(self, dst_socket, headers, device_ip_addr, lines):
         message = ""
@@ -81,19 +113,30 @@ class Gateway:
             line_data = line.split(" ")
             current = device_ip_addr+" "+line_data[0]+" "+line_data[1]+" "+line_data[2]+"\n"
             # Bulk up message with current new message part
-            if len(message.encode()) < 4096:
+            if self.is_bulkable(headers+'\n'+message):
                message += current
-            # Segmentation
+            # Segmentation 
             else:
                 if previous != "":
                     message = message.replace(previous, "")
+<<<<<<< HEAD
                     self.dst_socket.send((headers+'\n'+message).encode())
+=======
+                    dst_socket.send((headers+'\n'+message).encode())
+>>>>>>> 876fb503708eaacdd1dec9397c5fd0c3f55f946e
                     sent = True
                     message = previous + current
             previous = current
         # Message never gets segmented
         if not sent:
+<<<<<<< HEAD
             self.dst_socket.send((headers+'\n'+message).encode())
+=======
+            dst_socket.send((headers+'\n'+message).encode())
+            
+    def is_bulkable(msg):
+        return len(msg.encode()) < 4096
+>>>>>>> 876fb503708eaacdd1dec9397c5fd0c3f55f946e
             
     def signal_handler(self, signal, frame):
         print('Ctrl+c pressed: sockets shutting down..')
@@ -104,8 +147,16 @@ class Gateway:
         
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     gateway = Gateway(('localhost', 13018), ('localhost', 42018), 
                       '192.168.1.1', '10.10.10.1', '7A:D8:DD:50:8B:42',
                       ('10.10.10.2', 'FE:D7:0B:E6:43:C5'))
     signal.signal(signal.SIGINT, gateway.signal_handler)
     gateway.manage_client()
+=======
+    gateway = Gateway(('localhost', 12000), ('localhost', 42000), 
+                      '192.168.1.1', '10.10.10.1', '7A:D8:DD:50:8B:42',
+                      ('10.10.10.2', 'FE:D7:0B:E6:43:C5'))
+    signal.signal(signal.SIGINT, gateway.signal_handler)
+    gateway.manage_client()
+>>>>>>> 876fb503708eaacdd1dec9397c5fd0c3f55f946e

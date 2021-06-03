@@ -68,6 +68,7 @@ class Gateway:
     def data_split(self, databox):
         ''' databox: 
             ------------------------------------
+            |   HEADERS                        |
             |   time1 temperature1 humidity1   \
             \   time2 temperature2 humidity2   \
             |   ..... ............ .........   \
@@ -86,20 +87,23 @@ class Gateway:
         source_ip = headers[0:12]
         destination_ip = headers[12:22]
         source_mac = headers[22:39]
-        destination_mac = headers[39:57]
+        destination_mac = headers[39:56]
+        epoch_time = float(headers[56:74])
         lines.remove(headers)
         # Packet Message retrieval
         message = ""
         for line in lines:
             message = message + line + '\n'
         # Important infos
-        print("The packed received:\n Source MAC address: {source_mac}, Destination MAC address: {destination_mac}".format(source_mac=source_mac, destination_mac=destination_mac))
+        print("The packed received:\nSource MAC address: {source_mac},\nDestination MAC address: {destination_mac}".format(source_mac=source_mac, destination_mac=destination_mac))
         print("\nSource IP address: {source_ip}, Destination IP address: {destination_ip}".format(source_ip=source_ip, destination_ip=destination_ip))
-        print("\nMessage: " + message)
+        print("\nEpoch time: {time},\nTime elapsed: {elapsed_time}".format(time=epoch_time, elapsed_time=time.time()-epoch_time))
+        print("\nMessage: \n" + message)
         # Packet Header recomposing
         ethernet_header = self.mac + self.arp_table_mac[destination_ip]
         IP_header = source_ip + destination_ip
-        new_headers = ethernet_header + IP_header
+        epoch_time = time.time()
+        new_headers = IP_header + ethernet_header + str(epoch_time)
         # Compose message and send
         self.send_message(self.arp_table_socket[destination_ip], new_headers, 
                           source_ip, lines)
@@ -134,7 +138,7 @@ class Gateway:
 =======
             dst_socket.send((headers+'\n'+message).encode())
             
-    def is_bulkable(msg):
+    def is_bulkable(self, msg):
         return len(msg.encode()) < 4096
 >>>>>>> 876fb503708eaacdd1dec9397c5fd0c3f55f946e
             
@@ -148,6 +152,7 @@ class Gateway:
 
 if __name__ == '__main__':
 <<<<<<< HEAD
+<<<<<<< HEAD
     gateway = Gateway(('localhost', 13018), ('localhost', 42018), 
                       '192.168.1.1', '10.10.10.1', '7A:D8:DD:50:8B:42',
                       ('10.10.10.2', 'FE:D7:0B:E6:43:C5'))
@@ -155,6 +160,9 @@ if __name__ == '__main__':
     gateway.manage_client()
 =======
     gateway = Gateway(('localhost', 12000), ('localhost', 42000), 
+=======
+    gateway = Gateway(('localhost', 12000), ('localhost', 40000), 
+>>>>>>> 3cc03c2a330b4a181f53341ea415cd58e1a2629f
                       '192.168.1.1', '10.10.10.1', '7A:D8:DD:50:8B:42',
                       ('10.10.10.2', 'FE:D7:0B:E6:43:C5'))
     signal.signal(signal.SIGINT, gateway.signal_handler)

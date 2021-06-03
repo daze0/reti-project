@@ -8,7 +8,6 @@ Created on Mon May 10 17:07:38 2021
 
 from socket import socket, AF_INET, SOCK_DGRAM
 import time
-from threading import Thread, currentThread
 import os
 import Measurement
 
@@ -41,7 +40,8 @@ class device:
         # HEADERS creation
         IP_header = self.ip + target_ip
         ethernet_header = self.mac + self.router_mac
-        self.headers = IP_header + ethernet_header
+        epoch_time = time.time()
+        self.headers = IP_header + ethernet_header + str(epoch_time)
         with open(self.filename, "wt") as f:
             f.write(self.headers+"\n")
         # Periodically send data to GATEWAY
@@ -53,7 +53,7 @@ class device:
                 os.remove(self.filename)
                 with open(self.filename, "wt") as f:
                     f.write(self.headers+"\n")
-            self.get_data()
+            self.get_random_data()
             time.sleep(5)
                 
     # Get a measurement from the user
@@ -77,10 +77,13 @@ class device:
         print("\nNew measurement: ")
         measure = Measurement.Measurement()
         with open(self.filename, "a") as f:
-            f.write(measure.get_time()+self.SEP+measure.get_temperature()+self.SEP+measure.get_humidity()+"\n")
-            print("Time: "+measure.get_time())
-            print("Temperature: "+measure.get_temperature())
-            print("Humidity: "+measure.get_humidity())
+            time = measure.get_time()
+            temperature = measure.get_temperature()
+            humidity = measure.get_humidity()
+            f.write(time+self.SEP+temperature+self.SEP+humidity+"\n")
+        print("Time: "+time)
+        print("Temperature: "+temperature)
+        print("Humidity: "+humidity)
         return True
         
     # Send data file to GATEWAY
@@ -102,11 +105,8 @@ class device:
         self.sock.close()
         self.timer.do_run = False
 
-dev1 = device("data.txt", "192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', 12000), 
+dev1 = device("data.txt", "192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', 15000), 
               '7A:D8:DD:50:8B:42', '10.10.10.2')
-
-while dev1.get_data():
-    continue
         
 dev1.close_sock()
         

@@ -24,11 +24,7 @@ class Cloud:
         self.connection_socket = self.socket_TCP
     
     def get_message(self):
-        while True:
-            self.connection_socket, address = self.socket_TCP.accept()
-            if self.connection_socket != None:
-                print('READY')
-                break
+        self.connection_socket, address = self.accept_connection()
         while True:
             try:
                 data = self.connection_socket.recv(4096)
@@ -40,7 +36,8 @@ class Cloud:
                 destination_ip = data[12:22]
                 source_mac = data[22:39]
                 destination_mac = data[39:57]
-                message = data[57:]
+                epoch_time = data[57:74]
+                message = data[74:]
                 # Important infos for debugging
                 print("\nPacket integrity:\ndestination MAC address matches client 1 MAC address: {mac}".format(mac=(self.mac == destination_mac)))
                 print("\ndestination IP address matches client 1 IP address: {mac}".format(mac=(self.ip == destination_ip)))
@@ -51,6 +48,13 @@ class Cloud:
             except Exception as exc:
                 print('Errore   ' + exc)
                 self.connection_socket.close()
+            
+    def accept_connection(self):
+         while True:
+            connection_socket, address = self.socket_TCP.accept()
+            if self.connection_socket != None:
+                print('READY')
+                return connection_socket, address
                 
     def signal_handler(self, signal, frame):
         print('Ctrl+c pressed: Cloud server shutting down..')

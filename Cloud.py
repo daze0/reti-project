@@ -75,7 +75,7 @@ class Cloud:
             sys.exit(0)
         
 if __name__ == '__main__':
-    cloud = Cloud(('localhost', 40000), '10.10.10.2', 'FE:D7:0B:E6:43:C5')
+    cloud = Cloud(('localhost', 45000), '10.10.10.2', 'FE:D7:0B:E6:43:C5')
     print('Cloud server on..')
     signal.signal(signal.SIGINT, cloud.signal_handler)
     cloud.get_message()

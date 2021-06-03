@@ -36,7 +36,9 @@ class Gateway:
     def manage_client(self):
         while True:
             data, addr = self.socket_UDP.recvfrom(4096)
-            data = data.decode() #???
+            print("\nReceived {n_bytes} bytes..".format(n_bytes=len(data)))
+            data = data.decode() 
+            print("\n{data}".format(data=data))
             if data:
                 self.data_split(data)
             time.sleep(.5)
@@ -53,8 +55,8 @@ class Gateway:
             ------------------------------------
         '''
         lines = databox.split("\n")
-        print("File split in lines..")
         lines.remove('') #EOF
+        print("File split in lines..")
         headers = lines[0]
         # Packet Headers retrieval
         source_ip = headers[0:12]
@@ -85,20 +87,24 @@ class Gateway:
         message = ""
         previous = ""
         sent = False
-        for line in lines:
-            line_data = line.split(" ")
-            current = device_ip_addr+" "+line_data[0]+" "+line_data[1]+" "+line_data[2]+"\n"
-            # Bulk up message with current new message part
-            if self.is_bulkable(headers+'\n'+message):
-               message += current
-            # Segmentation 
-            else:
-                if previous != "":
-                    message = message.replace(previous, "")
-                    dst_socket.send((headers+'\n'+message).encode())
-                    sent = True
-                    message = previous + current
-            previous = current
+        try:
+            for line in lines:
+                line_data = line.split(" ")
+                current = device_ip_addr+" "+line_data[0]+" "+line_data[1]+" "+line_data[2]+"\n"
+                # Bulk up message with current new message part
+                if self.is_bulkable(headers+'\n'+message):
+                   message += current
+                # Segmentation 
+                else:
+                    if previous != "":
+                        message = message.replace(previous, "")
+                        dst_socket.send((headers+'\n'+message).encode())
+                        sent = True
+                        message = previous + current
+                previous = current
+        except Exception as exc:
+            print(exc)
+            sys.exit(0)
         # Message never gets segmented
         if not sent:
             dst_socket.send((headers+'\n'+message).encode())
@@ -115,7 +121,7 @@ class Gateway:
         
 
 if __name__ == '__main__':
-    gateway = Gateway(('localhost', 12000), ('localhost', 40000), 
+    gateway = Gateway(('localhost', 10000), ('localhost', 45000), 
                       '192.168.1.1', '10.10.10.1', '7A:D8:DD:50:8B:42',
                       ('10.10.10.2', 'FE:D7:0B:E6:43:C5'))
     signal.signal(signal.SIGINT, gateway.signal_handler)

@@ -11,6 +11,10 @@ import time
 import os
 import Measurement
 
+SEP = " "
+PERIOD = 25 # secs
+BUFSIZE = 4096
+
 class Device:
     def __init__(self, filename, device_ip, device_mac, gateway_addr, router_mac, target_ip): 
         # Socket used to connect to the GATEWAY
@@ -22,11 +26,8 @@ class Device:
             self.address = tuple(gateway_addr)
         except TypeError as info:
             print(info)
-        # Useful for sending data periodically to the server
-        # Initially set at -1
-        self.data_dump_timer = -1
         # This is the filename of the file that contains 24h worth of data 
-        self.filename = filename
+        self._filename = filename
         # CONSTANTS
         self.SEP = " "
         self.PERIOD = 25 # secs

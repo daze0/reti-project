@@ -11,15 +11,15 @@ import time
 import os
 import Measurement
 
-class device:
-    def __init__(self, filename, device_ip, device_mac, addr, router_mac, target_ip): 
+class Device:
+    def __init__(self, filename, device_ip, device_mac, gateway_addr, router_mac, target_ip): 
         # Socket used to connect to the GATEWAY
         self.sock = socket(AF_INET, SOCK_DGRAM)
         # timer thread flag
         #self.socket_on = True
         # Arg type validity check
         try:
-            self.address = tuple(addr)
+            self.address = tuple(gateway_addr)
         except TypeError as info:
             print(info)
         # Useful for sending data periodically to the server
@@ -106,12 +106,11 @@ class device:
     def close_sock(self):
         print ('closing socket')
         self.sock.close()
-        self.timer.do_run = False
-
-dev1 = device("data.txt", "192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', 10000), 
-              '7A:D8:DD:50:8B:42', '10.10.10.2')
         
-dev1.close_sock()
+if __name__ == '__main__':
+    dev1 = Device("data.txt", "192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', 10000), 
+                  '7A:D8:DD:50:8B:42', '10.10.10.2')
+    dev1.close_sock()
         
 
     

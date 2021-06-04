@@ -32,8 +32,9 @@ class Gateway:
          # ARP table creation
         self._arp_table_mac = {cloud_addr[0] : cloud_addr[1]}
         self._arp_table_socket = {cloud_addr[0] : self._socket_TCP}
-        # Gateway main loop, CTRL+C signal handler
-        signal.signal(signal.SIGINT, gateway.signal_handler)
+        # CTRL+C signal handler
+        signal.signal(signal.SIGINT, self._signal_handler)
+        # Gateway main loop
         self._manage_client()
         
     def _manage_client(self):

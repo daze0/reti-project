@@ -28,7 +28,7 @@ class DeviceFactory:
                   '7A:D8:DD:50:8B:42', '10.10.10.2')
     # Creates and returns default device 4
     def default_device_4():
-        return Device("data_dev3.txt", "192.168.1.25", "96:34:75:51:CC:73", ('localhost', 10000), 
+        return Device("data_dev4.txt", "192.168.1.25", "96:34:75:51:CC:73", ('localhost', 10000), 
                   '7A:D8:DD:50:8B:42', '10.10.10.2')
     
 class GatewayFactory:

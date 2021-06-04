@@ -9,7 +9,7 @@ Created on Mon May 10 17:07:38 2021
 from socket import socket, AF_INET, SOCK_DGRAM
 import time
 import os
-import Measurement
+import measurement
 
 #CONSTANTS 
 SEP = " "
@@ -74,7 +74,7 @@ class Device:
     # Write it on data file
     def _get_random_data(self):
         print("\nNew measurement: ")
-        measure = Measurement.Measurement()
+        measure = measurement.Measurement()
         with open(self._filename, "a") as f:
             time = measure.get_time()
             temperature = measure.get_temperature()

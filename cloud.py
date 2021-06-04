@@ -14,6 +14,8 @@ import signal
 
 import time
 
+BACKLOG = 3
+
 class Cloud:        
     def __init__(self, ip_n_port, ip, mac_addr):
         self._mac = mac_addr
@@ -21,7 +23,7 @@ class Cloud:
         # TCP Server socket setup
         self._socket_TCP = socket(AF_INET, SOCK_STREAM)
         self._socket_TCP.bind((ip_n_port))
-        self._socket_TCP.listen(3)
+        self._socket_TCP.listen(BACKLOG)
         # By default connection_socket is set to server socket
         self._connection_socket = self._socket_TCP
         # It's on message

@@ -7,18 +7,19 @@ Created on Wed May 26 16:42:30 2021
 """
 import time, random
 
-class Measurement:
-    def __init__(self):
-        self.t = time.localtime()
-        self.current_time = time.strftime("%H:%M:%S", self.t)
-        self.temperature = str(random.randrange(-99, 99))
-        self.humidity = str(random.randrange(0, 100))
-       
+MIN_TEMP = -99
+MAX_TEMP = 99
+
+MIN_HUMIDITY = 0
+MAX_HUMIDITY = 100
+
+class Measurement:      
     def get_time(self):
-        return self.current_time
+        t = time.localtime()
+        return time.strftime("%H:%M:%S", t)
     
     def get_temperature(self):
-        return self.temperature
+        return str(random.randrange(MIN_TEMP, MAX_TEMP))
     
     def get_humidity(self):
-        return self.humidity
+        return str(random.randrange(MIN_HUMIDITY, MAX_HUMIDITY))

@@ -6,7 +6,8 @@ Created on Fri Jun  4 20:21:21 2021
 @author: daze
 """
 
-from factories import DeviceFactory
+import sys
+sys.path.append('../')
+import factories as f
 
-f = DeviceFactory()
-dev1 = f.default_device_1()
+dev1 = f.DeviceFactory().default_device_1()

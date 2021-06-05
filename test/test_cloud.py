@@ -6,7 +6,8 @@ Created on Fri Jun  4 22:08:38 2021
 @author: daze
 """
 
-from factories import CloudFactory
+import sys
+sys.path.append('../')
+import factories as f
 
-f = CloudFactory()
-cloud = f.default_cloud()
+cloud = f.CloudFactory().default_cloud()

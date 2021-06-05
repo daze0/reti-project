@@ -6,7 +6,8 @@ Created on Fri Jun  4 22:06:18 2021
 @author: daze
 """
 
-from factories import GatewayFactory
+import sys
+sys.path.append('../')
+import factories as f
 
-f = GatewayFactory()
-gateway = f.default_gateway()
+gateway = f.GatewayFactory().default_gateway()

@@ -31,9 +31,9 @@ class Cloud:
         # CTRL+C signal handler
         signal.signal(signal.SIGINT, self._signal_handler)
         # Cloud main loop
-        cloud._get_message()
+        self._get_message()
         # Ultimately close socket
-        cloud._socket_TCP.close()
+        self._socket_TCP.close()
     
     def _get_message(self):
         self._connection_socket, address = self._accept_connection()

@@ -1,3 +1,7 @@
 data.txt
 data_file.txt
 __pycache__
+test/data_dev1.txt
+test/data_dev2.txt
+test/data_dev3.txt
+test/data_dev4.txt

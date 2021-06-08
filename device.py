@@ -10,6 +10,7 @@ from socket import socket, AF_INET, SOCK_DGRAM
 import time
 import os
 import measurement
+from packet import Packet
 
 #CONSTANTS 
 SEP = " "
@@ -35,25 +36,17 @@ class Device:
         self._mac = device_mac
         # Router MAC address
         self._router_mac = router_mac
-        # HEADERS creation
-        IP_header = self._ip + target_ip
-        ethernet_header = self._mac + self._router_mac
-        headers = IP_header + ethernet_header
+        # pkt headers setup
+        self._pkt = Packet().IP_header(self._ip+target_ip).ethernet_header(self._mac+self._router_mac)
         # Periodically send data to GATEWAY
         self._timer = time.time()
         while True:
             if time.time() - self._timer >= PERIOD:
-                self._send(headers)
+                self._send()
                 self._timer = time.time()
                 os.remove(self._filename)
             self._get_random_data()
             time.sleep(5)
-            
-    def _update_epoch_header(self, headers):
-        epoch_time = time.time()
-        headers = headers + str(epoch_time)
-        self._headers = headers
-        return headers
                 
     # Get a measurement from the user
     # Write it on data file
@@ -75,10 +68,10 @@ class Device:
     def _get_random_data(self):
         print("\nNew measurement: ")
         measure = measurement.Measurement()
+        time = measure.get_time()
+        temperature = measure.get_temperature()
+        humidity = measure.get_humidity()
         with open(self._filename, "a") as f:
-            time = measure.get_time()
-            temperature = measure.get_temperature()
-            humidity = measure.get_humidity()
             f.write(time+SEP+temperature+SEP+humidity+"\n")
         print("Time: "+time)
         print("Temperature: "+temperature)
@@ -86,7 +79,7 @@ class Device:
         return True
         
     # Send data file to GATEWAY
-    def _send(self, headers):
+    def _send(self):
         with open(self._filename, "rb") as file:
             while True:
                 r = file.read(BUFSIZE)
@@ -94,21 +87,14 @@ class Device:
                     break
                 else:
                     try:
-                        new_headers = self._update_epoch_header(headers)
-                        msg = new_headers + '\n' + r.decode()
-                        self._sock.sendto(msg.encode(), self._address)
+                        self._pkt.epoch_time().payload(r)
+                        self._sock.sendto(self._pkt, self._address) #TODO: Serialize _pkt
                     except Exception as info:
                         print(info)
+                
                         
     # Close device socket
     def _close_sock(self):
         print ('closing socket')
         self._sock.close()
-        
-if __name__ == '__main__':
-    dev1 = Device("data.txt", "192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', 10000), 
-                  '7A:D8:DD:50:8B:42', '10.10.10.2')
-    dev1.close_sock()
-        
-
     

@@ -14,7 +14,9 @@ import signal
 
 import time
 
-BACKLOG = 3
+from packet import Packet 
+
+BACKLOG = 4
 
 class Cloud:        
     def __init__(self, ip_n_port, ip, mac_addr):
@@ -39,24 +41,18 @@ class Cloud:
         self._connection_socket, address = self._accept_connection()
         while True:
             try:
-                data = self._connection_socket.recv(4096)
-                if data:
+                pkt_received = self._connection_socket.recv(4096)
+                if pkt_received:
                     # Important infos
-                    print('data received(%s bytes from %s):\n%s' % (len(data), address, data.decode()))
+                    print('data received(%s bytes from %s):\n%s' % (len(pkt_received), address, pkt_received.decode()))
                     # Pkt headers 'n' message retrieval
-                    data = data.decode() 
-                    lines = data.split('\n')
-                    lines.remove('') #EOF
-                    headers = lines[0]
-                    source_ip = headers[0:12]
-                    destination_ip = headers[12:22]
-                    source_mac = headers[22:39]
-                    destination_mac = headers[39:56]
-                    epoch_time = float(headers[56:74])
-                    lines.remove(headers)
-                    message = ""
-                    for line in lines:
-                        message = message + line + '\n'
+                    pkt_received = pkt_received.decode() # TODO: Deserialize pkt
+                    source_ip = pkt_received.get_src_ip()
+                    destination_ip = pkt_received.get_dst_ip()
+                    source_mac = pkt_received.get_src_mac()
+                    destination_mac = pkt_received.get_dst_mac()
+                    epoch_time = float(pkt_received.get_epoch_time())
+                    message = pkt_received.get_payload()
                     # Important infos for debugging
                     print("\nPacket integrity:\ndestination MAC address matches client MAC address: {mac}".format(mac=(self._mac == destination_mac)))
                     print("\ndestination IP address matches client IP address: {mac}".format(mac=(self._ip == destination_ip)))
@@ -83,11 +79,4 @@ class Cloud:
             self._socket_TCP.close()
         finally:
             sys.exit(0)
-        
-if __name__ == '__main__':
-    cloud = Cloud(('localhost', 45000), '10.10.10.2', 'FE:D7:0B:E6:43:C5')
-    print('Cloud server on..')
-    signal.signal(signal.SIGINT, cloud.signal_handler)
-    cloud.get_message()
-    cloud.socket_TCP.close()
     

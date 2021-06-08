@@ -9,6 +9,7 @@ Created on Mon May 10 16:37:59 2021
 from socket import AF_INET, socket, SOCK_DGRAM, SOCK_STREAM
 import sys, time
 import signal
+from packet import Packet
 
 class Gateway:
     def __init__(self, ip_port_UDP, ip_port_TCP, ip_devnet, ip_cloudnet, mac_addr, cloud_addr):
@@ -23,15 +24,12 @@ class Gateway:
         print("UDP server up on port "+str(ip_port_UDP[1]))
         # TCP Client socket setup
         self._socket_TCP = socket(AF_INET, SOCK_STREAM)
-        try:
-            self._socket_TCP.connect((ip_port_TCP))
-        except Exception as data:
-            print (Exception,":",data)
-            sys.exit(0)
-        print("TCP connection over Cloud established on port "+str(ip_port_TCP[1]))
-         # ARP table creation
+        self._ip_port_TCP = ip_port_TCP
+         # ARP tables creation
         self._arp_table_mac = {cloud_addr[0] : cloud_addr[1]}
-        self._arp_table_socket = {cloud_addr[0] : self._socket_TCP}
+        self._clients = {"192.168.1.10": (None, False), "192.168.1.15": (None, False),
+                         "192.168.1.20": (None, False), "192.168.1.25": (None, False)}
+        self._true_counter = 0
         # CTRL+C signal handler
         signal.signal(signal.SIGINT, self._signal_handler)
         # Gateway main loop
@@ -41,81 +39,85 @@ class Gateway:
         while True:
             data, addr = self._socket_UDP.recvfrom(4096)
             print("\nReceived {n_bytes} bytes..".format(n_bytes=len(data)))
-            data = data.decode() 
+            data = data.decode() #??? deserialize incoming Packet()  
             print("\n{data}".format(data=data))
             if data:
-                self._data_split(data)
+                self._data_split(data) 
             time.sleep(.5)
                     
-    def _data_split(self, databox):
-        ''' databox: 
+    def _data_split(self, pkt_received):
+        ''' pkt_received: 
             ------------------------------------
-            |   HEADERS                        |
-            |   time1 temperature1 humidity1   \
-            \   time2 temperature2 humidity2   \
-            |   ..... ............ .........   \
-            \   timeN temperatureN humidityN   |
-            \                                  \ EOF
+            |   SRC_IP       \  DST_IP         |
+            |   SRC_MAC      \  DST_MAC        \
+            \            EPOCH TIME            \
+            \             PAYLOAD              \
             ------------------------------------
         '''
-        lines = databox.split("\n")
-        lines.remove('') #EOF
-        print("File split in lines..")
-        headers = lines[0]
         # Packet Headers retrieval
-        source_ip = headers[0:12]
-        destination_ip = headers[12:22]
-        source_mac = headers[22:39]
-        destination_mac = headers[39:56]
-        epoch_time = float(headers[56:74])
-        lines.remove(headers)
-        # Packet Message retrieval
-        message = ""
-        for line in lines:
-            message = message + line + '\n'
+        source_ip = pkt_received.get_src_ip()
+        destination_ip = pkt_received.get_dst_ip()
+        source_mac = pkt_received.get_src_mac()
+        destination_mac = pkt_received.get_dst_mac()
+        epoch_time = float(pkt_received.get_epoch_time())
+        message = pkt_received.get_payload()
         # Important infos
         print("The packed received:\nSource MAC address: {source_mac},\nDestination MAC address: {destination_mac}".format(source_mac=source_mac, destination_mac=destination_mac))
         print("\nSource IP address: {source_ip}, Destination IP address: {destination_ip}".format(source_ip=source_ip, destination_ip=destination_ip))
         print("\nEpoch time: {time},\nTime elapsed: {elapsed_time}".format(time=epoch_time, elapsed_time=time.time()-epoch_time))
-        print("\nMessage: \n" + message)
-        # Packet Header recomposing
-        ethernet_header = self._mac + self._arp_table_mac[destination_ip]
-        IP_header = source_ip + destination_ip
-        epoch_time = time.time()
-        new_headers = IP_header + ethernet_header + str(epoch_time)
-        # Compose message and send
-        self._send_message(self._arp_table_socket[destination_ip], new_headers, 
-                          source_ip, lines)
+        print("\nMessage: \n" + message)    
+        # Adds message to clients' dictionary e eventually sends collected data
+        for ip in self._clients.keys():
+            # Security check: client validity
+            if ip == source_ip:
+                self._clients[ip] = (pkt_received, True)
+                self._true_counter += 1
+                # When all clients have sent their measurements
+                # send new packet and reset every client's tuple
+                if self._true_counter == len(self._clients.keys()):
+                    self._send_message()
+                    self._reset_clients_data()
+            else:
+                print("Invalid client(%s) tried to connect" % (ip))
                 
-    def _send_message(self, dst_socket, headers, device_ip_addr, lines):
-        message = ""
-        previous = ""
-        sent = False
+    def _reset_clients_data(self):
+        for k in self._clients.keys():
+            self._clients[k] = (None, False)
+        self._true_counter = 0
+        
+    def _open_TCP_connection(self):
+        # TCP Client socket setup
         try:
+            self._socket_TCP.connect((self._ip_port_TCP))
+        except Exception as data:
+            print (Exception,":",data)
+            sys.exit(0)
+        print("TCP connection over Cloud established on port "+str(self.ip_port_TCP[1]))
+        
+    def _send_message(self):
+        # Open TCP connection only when all devices' pkts are received
+        self._open_TCP_connection()
+        # Loop through each client and format each payload
+        # Computational cost: O(n) = (n+m)
+        for ip in self._clients.keys():
+            pkt = self._clients.get(ip)[0]
+            lines = pkt.get_payload().split('\n')
+            message = ""
+            # ??? Segmentation or not?
             for line in lines:
                 line_data = line.split(" ")
-                current = device_ip_addr+" "+line_data[0]+" "+line_data[1]+" "+line_data[2]+"\n"
-                # Bulk up message with current new message part
-                if self._is_bulkable(headers+'\n'+message):
-                   message += current
-                # Segmentation 
-                else:
-                    if previous != "":
-                        message = message.replace(previous, "")
-                        dst_socket.send((headers+'\n'+message).encode())
-                        sent = True
-                        message = previous + current
-                previous = current
-        except Exception as exc:
-            print(exc)
-            sys.exit(0)
-        # Message never gets segmented
-        if not sent:
-            dst_socket.send((headers+'\n'+message).encode())
-            
-    def _is_bulkable(self, msg):
-        return len(msg.encode()) < 4096
-            
+                current = ip+" " +line_data[0]+" "+line_data[1]+" "+line_data[2]+"\n"
+                message += current
+            # When payload of each client is correctly formatted
+            # create a packet each with appropriate headers and new payload
+            pkt_to_send = Packet().IP_header(pkt.get_src_ip+pkt.get_dst_ip).ethernet_header(self._mac+self._arp_table_mac[pkt.get_dst_ip]).epoch_time().payload(message)
+            try:
+                # Then serialize it and send it
+                self._socket_TCP.send(pkt_to_send) # TODO: Serialize pkt_to_send
+            except Exception as exc:
+                print(exc)
+                sys.exit(0)
+
     def _signal_handler(self, signal, frame):
         print('Ctrl+c pressed: sockets shutting down..')
         try:
@@ -123,10 +125,3 @@ class Gateway:
         finally:
             sys.exit(0)
         
-
-if __name__ == '__main__':
-    gateway = Gateway(('localhost', 10000), ('localhost', 45000), 
-                      '192.168.1.1', '10.10.10.1', '7A:D8:DD:50:8B:42',
-                      ('10.10.10.2', 'FE:D7:0B:E6:43:C5'))
-    signal.signal(signal.SIGINT, gateway.signal_handler)
-    gateway.manage_client()

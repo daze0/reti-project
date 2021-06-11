@@ -6,23 +6,23 @@ Created on Mon May 10 17:07:38 2021
 @author: daze and fedebruno
 """
 
-from socket import socket, AF_INET, SOCK_DGRAM
+from socket import socket, AF_INET, SOCK_DGRAM, timeout
 import time
 import os
 import measurement
-from packet import Packet
+from packet import Packet, PacketBuilder
+import pickle
 
-#CONSTANTS 
+# CONSTANTS 
 SEP = " "
 PERIOD = 25 # secs
 BUFSIZE = 4096
+TIMEOUT = 1440 # secs
 
 class Device:
     def __init__(self, filename, device_ip, device_mac, gateway_addr, router_mac, target_ip): 
         # Socket used to connect to the GATEWAY
         self._sock = socket(AF_INET, SOCK_DGRAM)
-        # timer thread flag
-        #self.socket_on = True
         # Arg type validity check
         try:
             self._address = tuple(gateway_addr)
@@ -37,16 +37,18 @@ class Device:
         # Router MAC address
         self._router_mac = router_mac
         # pkt headers setup
-        self._pkt = Packet().IP_header(self._ip+target_ip).ethernet_header(self._mac+self._router_mac)
+        self._pkt = PacketBuilder()\
+            .ethernet_header(self._mac+self._router_mac)\
+            .IP_header(self._ip+target_ip)\
+            .build()
         # Periodically send data to GATEWAY
-        self._timer = time.time()
-        while True:
-            if time.time() - self._timer >= PERIOD:
-                self._send()
-                self._timer = time.time()
-                os.remove(self._filename)
-            self._get_random_data()
-            time.sleep(5)
+        self._sock.settimeout(TIMEOUT)
+        try:
+            while True:
+                self._get_random_data()
+        except timeout:
+            self._send()
+            os.remove(self._filename)
                 
     # Get a measurement from the user
     # Write it on data file
@@ -87,11 +89,12 @@ class Device:
                     break
                 else:
                     try:
-                        self._pkt.epoch_time().payload(r)
-                        self._sock.sendto(self._pkt, self._address) #TODO: Serialize _pkt
+                        self._pkt.set_epoch_time()
+                        self._pkt.set_payload(r.decode())
+                        serialized_pkt = pickle.dumps(self._pkt)
+                        self._sock.sendto(serialized_pkt, self._address) 
                     except Exception as info:
                         print(info)
-                
                         
     # Close device socket
     def _close_sock(self):

@@ -10,13 +10,13 @@ import time
     
 class Packet:
     # Constructor
-    def __init__(self, ethernet_header, IP_header, payload):
+    def __init__(self, ethernet_header='', IP_header='', payload=''):
         self._ethernet_header = ethernet_header
         self._IP_header = IP_header
         self._epoch_t = time.time()
         self._payload = payload
     
-    # Setters metthods section
+    # Setters methods section
     def set_IP_header(self, src, dst):
         self._IP_header = src+dst
         return self
@@ -35,16 +35,16 @@ class Packet:
   
     # Getters methods section
     def get_src_mac(self):
-        return self._ethernet_header[0:12]
+        return self._ethernet_header[0:17]
     
     def get_dst_mac(self):
-        return self._ethernet_header[12:]#22
+        return self._ethernet_header[17:]
     
     def get_src_ip(self):
-        return self._IP_header[0:17]
+        return self._IP_header[0:12]
     
     def get_dst_ip(self):
-        return self._IP_header[17:]#19
+        return self._IP_header[12:]
     
     def get_epoch_time(self):
         return self._epoch_t

@@ -12,6 +12,7 @@ import os
 import measurement
 from packet import Packet, PacketBuilder
 import pickle
+from network_interface import NetworkInterface as ni
 
 # CONSTANTS 
 SEP = " "
@@ -30,16 +31,14 @@ class Device:
             print(info)
         # This is the filename of the file that contains 24h worth of data 
         self._filename = filename
-        # Device IP as file header
-        self._ip = device_ip
-        # Device MAC address
-        self._mac = device_mac
+        # Device IP and MAC addresses
+        self._device_interface = ni(device_ip, device_mac)
         # Router MAC address
         self._router_mac = router_mac
         # pkt headers setup
         self._pkt = PacketBuilder()\
-            .ethernet_header(self._mac+self._router_mac)\
-            .IP_header(self._ip+target_ip)\
+            .ethernet_header(self._device_interface.get_mac_address()+self._router_mac)\
+            .IP_header(self._device_interface.get_ip_address()+target_ip)\
             .build()
         # Periodically send data to GATEWAY
         self._sock.settimeout(TIMEOUT)

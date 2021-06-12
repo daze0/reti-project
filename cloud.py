@@ -16,12 +16,17 @@ import time
 
 from packet import Packet 
 
+import pickle
+
+from network_interface import NetworkInterface as ni
+
 BACKLOG = 4
 
 class Cloud:        
     def __init__(self, ip_n_port, ip, mac_addr):
         self._mac = mac_addr
         self._ip = ip
+        self._cloud_interface = ni(ip, mac_addr)
         # TCP Server socket setup
         self._socket_TCP = socket(AF_INET, SOCK_STREAM)
         self._socket_TCP.bind((ip_n_port))
@@ -41,12 +46,12 @@ class Cloud:
         self._connection_socket, address = self._accept_connection()
         while True:
             try:
-                pkt_received = self._connection_socket.recv(4096)
-                if pkt_received:
+                data = self._connection_socket.recv(4096)
+                if data:
+                    pkt_received = pickle.loads(data)
                     # Important infos
-                    print('data received(%s bytes from %s):\n%s' % (len(pkt_received), address, pkt_received.decode()))
+                    print('data received(%s bytes from %s):\n%s' % (len(data), address, pkt_received))
                     # Pkt headers 'n' message retrieval
-                    pkt_received = pkt_received.decode() # TODO: Deserialize pkt
                     source_ip = pkt_received.get_src_ip()
                     destination_ip = pkt_received.get_dst_ip()
                     source_mac = pkt_received.get_src_mac()

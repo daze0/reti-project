@@ -16,9 +16,8 @@ from network_interface import NetworkInterface as ni
 
 # CONSTANTS 
 SEP = " "
-PERIOD = 25 # secs
 BUFSIZE = 4096
-TIMEOUT = 1440 # secs
+TIMEOUT = 25 # secs
 
 class Device:
     def __init__(self, filename, device_ip, device_mac, gateway_addr, router_mac, target_ip): 
@@ -37,14 +36,15 @@ class Device:
         self._router_mac = router_mac
         # pkt headers setup
         self._pkt = PacketBuilder()\
-            .ethernet_header(self._device_interface.get_mac_address()+self._router_mac)\
-            .IP_header(self._device_interface.get_ip_address()+target_ip)\
+            .ethernet_header(self._device_interface.get_mac_address(), self._router_mac)\
+            .IP_header(self._device_interface.get_ip_address(), target_ip)\
             .build()
         # Periodically send data to GATEWAY
         self._sock.settimeout(TIMEOUT)
         try:
             while True:
                 self._get_random_data()
+                time.sleep(5)
         except timeout:
             self._send()
             os.remove(self._filename)

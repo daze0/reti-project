@@ -61,11 +61,11 @@ class PacketBuilder:
         self._pkt = Packet()
         
     def IP_header(self, src, dst):
-        self._pkt.set_IP_header(src+dst)
+        self._pkt.set_IP_header(src, dst)
         return self
     
     def ethernet_header(self, src, dst):
-        self._pkt.set_ethernet_header(src+dst)
+        self._pkt.set_ethernet_header(src, dst)
         return self    
     
     def epoch_time(self):

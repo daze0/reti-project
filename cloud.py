@@ -7,17 +7,11 @@ Created on Mon May 10 17:24:27 2021
 """
 
 from socket import SOCK_STREAM, AF_INET, socket
-
 import sys
-
 import signal
-
 import time
-
 from packet import Packet 
-
 import pickle
-
 from network_interface import NetworkInterface as ni
 
 BACKLOG = 4

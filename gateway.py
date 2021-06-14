@@ -119,8 +119,8 @@ class Gateway:
             # When payload of each client is correctly formatted
             # create a packet each with appropriate headers and new payload
             pkt_to_send = PacketBuilder()\
-                .ethernet_header(self._cloud_interface.get_mac_address()+self._arp_table_mac[pkt.get_dst_ip()])\
-                .IP_header(pkt.get_src_ip()+pkt.get_dst_ip())\
+                .ethernet_header(self._cloud_interface.get_mac_address(), self._arp_table_mac[pkt.get_dst_ip()])\
+                .IP_header(pkt.get_src_ip(), pkt.get_dst_ip())\
                 .epoch_time()\
                 .payload(message)\
                 .build()

@@ -19,20 +19,16 @@ class DeviceFactory:
         return Device(filename, device_ip, device_mac, gateway_addr, router_mac, target_ip)
     # Creates and returns default device 1
     def default_device_1(self):
-        return Device("data_dev1.txt", "192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', DEFAULT_UDP_PORT), 
-                  '7A:D8:DD:50:8B:42', '10.10.10.2')
+        return Device("data_dev1.txt", "192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', DEFAULT_UDP_PORT), '7A:D8:DD:50:8B:42', '10.10.10.2')
     # Creates and returns default device 2
     def default_device_2(self):
-        return Device("data_dev2.txt", "192.168.1.15", "04:EA:56:E2:2D:63", ('localhost', DEFAULT_UDP_PORT), 
-                  '7A:D8:DD:50:8B:42', '10.10.10.2')
+        return Device("data_dev2.txt", "192.168.1.15", "04:EA:56:E2:2D:63", ('localhost', DEFAULT_UDP_PORT), '7A:D8:DD:50:8B:42', '10.10.10.2')
     # Creates and returns default device 3
     def default_device_3(self):
-        return Device("data_dev3.txt", "192.168.1.20", "6A:6C:39:F0:66:7A", ('localhost', DEFAULT_UDP_PORT), 
-                  '7A:D8:DD:50:8B:42', '10.10.10.2')
+        return Device("data_dev3.txt", "192.168.1.20", "6A:6C:39:F0:66:7A", ('localhost', DEFAULT_UDP_PORT), '7A:D8:DD:50:8B:42', '10.10.10.2')
     # Creates and returns default device 4
     def default_device_4(self):
-        return Device("data_dev4.txt", "192.168.1.25", "96:34:75:51:CC:73", ('localhost', DEFAULT_UDP_PORT), 
-                  '7A:D8:DD:50:8B:42', '10.10.10.2')
+        return Device("data_dev4.txt", "192.168.1.25", "96:34:75:51:CC:73", ('localhost', DEFAULT_UDP_PORT), '7A:D8:DD:50:8B:42', '10.10.10.2')
     
 class GatewayFactory:
     # Creates and returns a customized and completely active gateway 

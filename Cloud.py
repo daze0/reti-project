@@ -6,12 +6,11 @@ Created on Mon May 10 17:24:27 2021
 """
 
 from socket import SOCK_STREAM, AF_INET, socket
-
+import pickle
 import sys
-
 import signal
-
 import time
+from packet import Packet
 
 class Cloud:        
     def __init__(self, ip_n_port, ip, mac_addr):
@@ -30,32 +29,21 @@ class Cloud:
             try:
                 data = self.connection_socket.recv(4096)
                 if data:
-                    # Important infos
-                    print('data received(%s bytes from %s):\n%s' % (len(data), address, data.decode()))
                     # Pkt headers 'n' message retrieval
-                    data = data.decode() 
-                    lines = data.split('\n')
-                    lines.remove('') #EOF
-                    headers = lines[0]
-                    source_ip = headers[0:12]
-                    destination_ip = headers[12:22]
-                    source_mac = headers[22:39]
-                    destination_mac = headers[39:56]
-                    epoch_time = float(headers[56:74])
-                    lines.remove(headers)
-                    message = ""
-                    for line in lines:
-                        message = message + line + '\n'
-                    # Important infos for debugging
-                    print("\nPacket integrity:\ndestination MAC address matches client MAC address: {mac}".format(mac=(self.mac == destination_mac)))
-                    print("\ndestination IP address matches client IP address: {mac}".format(mac=(self.ip == destination_ip)))
-                    print("\nThe packed received:\n Source MAC address: {source_mac},\nDestination MAC address: {destination_mac}".format(source_mac=source_mac, destination_mac=destination_mac))
-                    print("\nSource IP address: {source_ip}, Destination IP address: {destination_ip}".format(source_ip=source_ip, destination_ip=destination_ip))
-                    print("\nEpoch time: {epochtime},\nTime elapsed: {elapsed_time}".format(epochtime=epoch_time, elapsed_time=time.time()-epoch_time))
+                    pkt_received = pickle.loads(data)
+                    source_ip = pkt_received.get_src_ip()
+                    destination_ip = pkt_received.get_dst_ip()
+                    source_mac = pkt_received.get_src_mac()
+                    destination_mac = pkt_received.get_dst_mac()
+                    epoch_time = float(pkt_received.get_epoch_time())
+                    message = pkt_received.get_payload()
+                    # Important infos
+                    print('Data received(%s bytes from %s %s)' % (len(data), source_ip, source_mac))
+                    print("TCP_time: %s seconds" % (time.time()-float(epoch_time)))
                     # Final measurement message output
-                    print("\nMessage: \n" + message)
+                    print("Message: \n" + message)
             except Exception as exc:
-                print('Errore   ' + exc)
+                print(exc)
                 self.connection_socket.close()
             
     def accept_connection(self):
@@ -74,7 +62,7 @@ class Cloud:
             sys.exit(0)
         
 if __name__ == '__main__':
-    cloud = Cloud(('localhost', 40000), '10.10.10.2', 'FE:D7:0B:E6:43:C5')
+    cloud = Cloud(('localhost', 45006), '10.10.10.2', 'FE:D7:0B:E6:43:C5')
     print('Cloud server on..')
     signal.signal(signal.SIGINT, cloud.signal_handler)
     cloud.get_message()

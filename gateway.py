@@ -43,6 +43,7 @@ class Gateway:
             data = pickle.loads(data)  
             print("\n{data}".format(data=data))
             if data:
+                self._socket_UDP.sendto("ACK".encode(), addr)
                 self._data_split(data) 
             time.sleep(.5)
                     

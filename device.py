@@ -104,8 +104,9 @@ class Device:
     def _wait_ack(self):
         while True:
             data, addr = self._sock.recvfrom(4096)
-            possible_ack = pickle.loads(data)
-            if possible_ack.get_payload() == "ACK":
+            possible_ack = data.decode()
+            if possible_ack == "ACK":
+                print("ACK received!!!")
                 break
             
     # Close device socket

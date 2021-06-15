@@ -77,6 +77,8 @@ class Gateway:
                     print("\npkt sent\n")
                     self._reset_clients_data()
                     print("\nclients data reset\n")
+            elif ip == source_ip and self._clients[ip] != (None, False):
+                ip_valid = True
         if not ip_valid:
             print("Invalid client tried to connect! Exit..")
             try:

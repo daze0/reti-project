@@ -55,6 +55,10 @@ class Packet:
     def get_payload(self):
         return self._payload
     
+    def __str__(self):
+        return "HEADERS\nethernet: {eth_header}\nip: {ip_header}\nepoch time: {epoch_time}\n".format(eth_header=self._ethernet_header, ip_header=self._IP_header, epoch_time=self._epoch_t)\
+            + "PAYLOAD\n{payload}".format(payload=self._payload)
+    
     
 class PacketBuilder:
     def __init__(self):
@@ -69,7 +73,7 @@ class PacketBuilder:
         return self    
     
     def epoch_time(self):
-        self._pkt.set_epoch_time(time.time())
+        self._pkt.set_epoch_time()
         return self
     
     def payload(self, payload):

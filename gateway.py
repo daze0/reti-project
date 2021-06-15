@@ -134,7 +134,7 @@ class Gateway:
             sys.exit(0)
         print("\nDATA SENT CORRECTLY\n")
 
-    def _signal_handler(self, signal, frame):
+    def _signal_handler(self, signal):
         print('Ctrl+c pressed: sockets shutting down..')
         try:
             self._socket_TCP.close()

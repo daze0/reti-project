@@ -106,7 +106,7 @@ class Device:
             data, addr = self._sock.recvfrom(4096)
             possible_ack = data.decode()
             if possible_ack == "ACK":
-                print("ACK received!!!")
+                print("\nACK received")
                 break
             
     # Close device socket

@@ -44,20 +44,16 @@ class Cloud:
                 if data:
                     pkt_received = pickle.loads(data)
                     # Important infos
-                    print('data received(%s bytes from %s):\n%s' % (len(data), address, pkt_received))
-                    # Pkt headers 'n' message retrieval
-                    source_ip = pkt_received.get_src_ip()
+                    print('received %s bytes from %s: ' % (len(data), address))
+                    # Pkt dst headers 'n' message retrieval
                     destination_ip = pkt_received.get_dst_ip()
-                    source_mac = pkt_received.get_src_mac()
                     destination_mac = pkt_received.get_dst_mac()
                     epoch_time = float(pkt_received.get_epoch_time())
                     message = pkt_received.get_payload()
                     # Important infos for debugging
                     print("\nPacket integrity:\ndestination MAC address matches client MAC address: {mac}".format(mac=(self._mac == destination_mac)))
-                    print("\ndestination IP address matches client IP address: {mac}".format(mac=(self._ip == destination_ip)))
-                    print("\nThe packed received:\n Source MAC address: {source_mac},\nDestination MAC address: {destination_mac}".format(source_mac=source_mac, destination_mac=destination_mac))
-                    print("\nSource IP address: {source_ip}, Destination IP address: {destination_ip}".format(source_ip=source_ip, destination_ip=destination_ip))
-                    print("\nEpoch time: {epochtime},\nTime elapsed: {elapsed_time}".format(epochtime=epoch_time, elapsed_time=time.time()-epoch_time))
+                    print("destination IP address matches client IP address: {ip}".format(ip=(self._ip == destination_ip)))
+                    print("\nElapsed time: {elapsed_time}".format(elapsed_time=time.time()-epoch_time))
                     # Final measurement message output
                     print("\nMessage: \n" + message)
             except Exception as exc:

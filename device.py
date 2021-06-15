@@ -6,66 +6,46 @@ Created on Mon May 10 17:07:38 2021
 @author: daze and fedebruno
 """
 
-from socket import socket, AF_INET, SOCK_DGRAM
+from socket import socket, AF_INET, SOCK_DGRAM, timeout
 import time
-import os, sys, signal
-import Measurement
-from packet import Packet
-from network_interface import network_interface as ni
-import pickle
 
-class device:
-    def __init__(self, filename, device_ip, device_mac, addr, router_mac, target_ip): 
+import os
+import measurement
+from packet import Packet, PacketBuilder
+import pickle
+from network_interface import NetworkInterface as ni
+
+# CONSTANTS 
+SEP = " "
+BUFSIZE = 4096
+TIMEOUT = 25 # secs
+
+class Device:
+    def __init__(self, filename, device_ip, device_mac, gateway_addr, router_mac, target_ip): 
         # Socket used to connect to the GATEWAY
-        self.sock = socket(AF_INET, SOCK_DGRAM)
-        # timer thread flag
-        #self.socket_on = True
+        self._sock = socket(AF_INET, SOCK_DGRAM)
         # Arg type validity check
         try:
-            self.address = tuple(addr)
+            self._address = tuple(gateway_addr)
         except TypeError as info:
             print(info)
-        # Useful for sending data periodically to the server
-        # Initially set at -1
-        self.data_dump_timer = -1
         # This is the filename of the file that contains 24h worth of data 
-        self.filename = filename
-        # CONSTANTS
-        self.SEP = " "
-        self.PERIOD = 15 # secs
-        self.BUFSIZE = 4096
-        # Device IP as file header
-        self.device_interface = ni(device_ip, device_mac)
+        self._filename = filename
+        # Device IP and MAC addresses
+        self._device_interface = ni(device_ip, device_mac)
         # Router MAC address
-        self.router_mac = router_mac
-        # Router IP address
-        self.router_ip = target_ip
-        # HEADERS creation
-        IP_header = self.device_interface.get_ip_address() + self.router_ip
-        ethernet_header = self.device_interface.get_mac_address() + self.router_mac
-        # Start timer thread
-        headers = ethernet_header + IP_header
-        # Ctrl+C to exit
-        signal.signal(signal.SIGINT, self.signal_handler)
+        self._router_mac = router_mac
+        # pkt headers setup
+        self._pkt = PacketBuilder()\
+            .ethernet_header(self._device_interface.get_mac_address(), self._router_mac)\
+            .IP_header(self._device_interface.get_ip_address(), target_ip)\
+            .build()
         # Periodically send data to GATEWAY
-        self.timer = time.time()
-        while True:
-            if time.time() - self.timer >= self.PERIOD:
-                self.send(headers)
-                self.timer = time.time()
-                os.remove(self.filename)
-            self.get_random_data()
-            time.sleep(3)
-            
-    def update_epoch_header(self, headers):
-        epoch_time = time.time()
-        headers = headers + str(epoch_time)
-        self.headers = headers
-        return headers
+        self._send()
                 
     # Get a measurement from the user
     # Write it on data file
-    def get_data(self):
+    def _get_data(self):
         print("\nNew measurement('q' to quit): ") 
         t = time.localtime()
         current_time = time.strftime("%H:%M:%S", t)
@@ -74,51 +54,50 @@ class device:
         if temperature == "q" and humidity == "q": 
             return False
         else:
-            with open(self.filename, "a") as f:
-                f.write(current_time+self.SEP+temperature+self.SEP+humidity+"\n")
+            with open(self._filename, "a") as f:
+                f.write(current_time+SEP+temperature+SEP+humidity+"\n")
             return True
 
     # Get a random measurement
     # Write it on data file
-    def get_random_data(self):
+    def _get_random_data(self):
         print("\nNew measurement: ")
-        measure = Measurement.Measurement()
-        with open(self.filename, "a") as f:
-            time = measure.get_time()
-            temperature = measure.get_temperature()
-            humidity = measure.get_humidity()
-            f.write(time+self.SEP+temperature+self.SEP+humidity+"\n")
+        measure = measurement.Measurement()
+        time = measure.get_time()
+        temperature = measure.get_temperature()
+        humidity = measure.get_humidity()
+        with open(self._filename, "a") as f:
+            f.write(time+SEP+temperature+SEP+humidity+"\n")
         print("Time: "+time)
         print("Temperature: "+temperature)
         print("Humidity: "+humidity)
         return True
         
     # Send data file to GATEWAY
-    def send(self, headers):
-        with open(self.filename, "rb") as file:
-            r = file.read(self.BUFSIZE)
-            try:
-                msg = r.decode()
-                pkt = Packet(self.device_interface.get_mac_address()+self.router_mac, 
-                             self.device_interface.get_ip_address()+self.router_ip,
-                             msg)
-                self.sock.sendto(pickle.dumps(pkt), self.address)
-            except Exception as info:
-                print(info)
+    def _send(self):
+        self._sock.settimeout(TIMEOUT)
+        try:
+            while True:
+                self._get_random_data()
+                time.sleep(5)
+        except timeout:
+            os.remove(self._filename)
+            with open(self._filename, "rb") as file:
+                while True:
+                    r = file.read(BUFSIZE)
+                    if not r:
+                        break
+                    else:
+                        try:
+                            self._pkt.set_epoch_time()
+                            self._pkt.set_payload(r.decode())
+                            serialized_pkt = pickle.dumps(self._pkt)
+                            self._sock.sendto(serialized_pkt, self._address) 
+                        except Exception as info:
+                            print(info)
                         
     # Close device socket
-    def close_sock(self):
+    def _close_sock(self):
         print ('closing socket')
-        self.sock.close()
-        self.timer.do_run = False
+        self._sock.close()
     
-    def signal_handler(self, signal, frame):
-        print('Ctrl+c pressed: sockets shutting down..')
-        try:
-            self.sock.close()
-            os.remove(self.filename)
-        finally:
-            sys.exit(0)
-
-dev1 = device("data.txt", "192.168.1.10", "36:DF:28:FC:D1:67", ('localhost', 10018), 
-              '7A:D8:DD:50:8B:42', '10.10.10.2')

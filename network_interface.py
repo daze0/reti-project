@@ -6,8 +6,7 @@ Created on Wed Jun  9 11:21:51 2021
 @author: fedebruno
 """
 
-class network_interface:
-    
+class NetworkInterface:
     def __init__(self, ip_interface_addr, mac_addr):
         self.ip_interface_addr = ip_interface_addr
         self.mac_addr = mac_addr

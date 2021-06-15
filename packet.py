@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Jun  6 22:13:12 2021
+
 @author: daze
 """
 
@@ -9,7 +10,7 @@ import time
     
 class Packet:
     # Constructor
-    def __init__(self, ethernet_header, IP_header, payload):
+    def __init__(self, ethernet_header='', IP_header='', payload=''):
         self._ethernet_header = ethernet_header
         self._IP_header = IP_header
         self._epoch_t = time.time()
@@ -60,11 +61,11 @@ class PacketBuilder:
         self._pkt = Packet()
         
     def IP_header(self, src, dst):
-        self._pkt.set_IP_header(src+dst)
+        self._pkt.set_IP_header(src, dst)
         return self
     
     def ethernet_header(self, src, dst):
-        self._pkt.set_ethernet_header(src+dst)
+        self._pkt.set_ethernet_header(src, dst)
         return self    
     
     def epoch_time(self):

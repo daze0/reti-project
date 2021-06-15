@@ -55,23 +55,16 @@ class Gateway:
             \             PAYLOAD              \
             ------------------------------------
         '''
-        # Packet Headers retrieval
-        source_ip = pkt_received.get_src_ip()
-        destination_ip = pkt_received.get_dst_ip()
-        source_mac = pkt_received.get_src_mac()
-        destination_mac = pkt_received.get_dst_mac()
+        # Epoch time and source IP headers retrieval
         epoch_time = float(pkt_received.get_epoch_time())
-        message = pkt_received.get_payload()
+        source_ip = pkt_received.get_src_ip()
         # Important infos
-        print("The packed received:\nSource MAC address: {source_mac},\nDestination MAC address: {destination_mac}".format(source_mac=source_mac, destination_mac=destination_mac))
-        print("\nSource IP address: {source_ip}, Destination IP address: {destination_ip}".format(source_ip=source_ip, destination_ip=destination_ip))
-        print("\nEpoch time: {time},\nTime elapsed: {elapsed_time}".format(time=epoch_time, elapsed_time=time.time()-epoch_time))
-        print("\nMessage: \n" + message)    
+        print("Elapsed time: {elapsed_time}".format(elapsed_time=time.time()-epoch_time))
         ip_valid = False
-        # Adds message to clients' dictionary e eventually sends collected data
+        # Adds message to clients' dictionary and eventually sends collected data
         for ip in self._clients.keys():
-            # Security check: client validity
-            if ip == source_ip:
+            # Check if source_ip is a valid ip and if that same ip value is set to default
+            if ip == source_ip and self._clients[ip] == (None, False):
                 self._clients[ip] = (pkt_received, True)
                 self._true_counter += 1
                 ip_valid = True
@@ -81,7 +74,7 @@ class Gateway:
                     self._send_message()
                     self._reset_clients_data()
         if not ip_valid:
-            print("Invalid client! Exit..")
+            print("Invalid client tried to connect! Exit..")
             try:
                 self._socket_TCP.close()
             finally:
@@ -99,7 +92,7 @@ class Gateway:
         except Exception as data:
             print (Exception,":",data)
             sys.exit(0)
-        print("TCP connection over Cloud established on port "+str(self.ip_port_TCP[1]))
+        print("TCP connection over Cloud established on port "+str(self._ip_port_TCP[1]))
         
     def _send_message(self):
         # Open TCP connection only when all devices' pkts are received
@@ -110,6 +103,7 @@ class Gateway:
         for ip in self._clients.keys():
             pkt = self._clients.get(ip)[0]
             lines = pkt.get_payload().split('\n')
+            lines.remove('') #EOF
             message = ""
             # Formatting new payload
             for line in lines:
@@ -127,10 +121,12 @@ class Gateway:
             try:
                 # Then serialize it and send it
                 serialized_pkt_to_send = pickle.dumps(pkt_to_send)
-                self._socket_TCP.send(serialized_pkt_to_send) # TODO: Serialize pkt_to_send
+                self._socket_TCP.send(serialized_pkt_to_send) 
+                # TODO: set socket timeout
             except Exception as exc:
                 print(exc)
                 sys.exit(0)
+        print("\nDATA SENT CORRECTLY\n")
 
     def _signal_handler(self, signal, frame):
         print('Ctrl+c pressed: sockets shutting down..')

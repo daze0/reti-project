@@ -65,14 +65,18 @@ class Gateway:
         for ip in self._clients.keys():
             # Check if source_ip is a valid ip and if that same ip value is set to default
             if ip == source_ip and self._clients[ip] == (None, False):
+                print("\nsource IP is valid and never touched\n")
                 self._clients[ip] = (pkt_received, True)
                 self._true_counter += 1
                 ip_valid = True
                 # When all clients have sent their measurements
                 # send new packet and reset every client's tuple
                 if self._true_counter == len(self._clients.keys()):
+                    print("\nall clients are connected, ready to send!\n")
                     self._send_message()
+                    print("\npkt sent\n")
                     self._reset_clients_data()
+                    print("\nclients data reset\n")
         if not ip_valid:
             print("Invalid client tried to connect! Exit..")
             try:
@@ -88,7 +92,7 @@ class Gateway:
     def _open_TCP_connection(self):
         # TCP Client socket setup
         try:
-            self._socket_TCP.connect((self._ip_port_TCP))
+            self._socket_TCP.connect((self._ip_port_TCP[0], self._ip_port_TCP[1]))
         except Exception as data:
             print (Exception,":",data)
             sys.exit(0)

@@ -111,6 +111,7 @@ class Device:
         try:
             self._close_sock()
             os.remove(self._filename)
+            self._timer.stop()
         finally:
             sys.exit(0)
     

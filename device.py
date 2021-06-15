@@ -13,11 +13,13 @@ import measurement
 from packet import Packet, PacketBuilder
 import pickle
 from network_interface import NetworkInterface as ni
+from timer import Timer
+import signal, sys
 
 # CONSTANTS 
 SEP = " "
 BUFSIZE = 4096
-TIMEOUT = 25 # secs
+PERIOD = 25 # secs
 
 class Device:
     def __init__(self, filename, device_ip, device_mac, gateway_addr, router_mac, target_ip): 
@@ -39,15 +41,18 @@ class Device:
             .ethernet_header(self._device_interface.get_mac_address(), self._router_mac)\
             .IP_header(self._device_interface.get_ip_address(), target_ip)\
             .build()
+        # CTRL+C signal handler
+        signal.signal(signal.SIGINT, self._signal_handler)
         # Periodically send data to GATEWAY
-        self._sock.settimeout(TIMEOUT)
-        try:
-            while True:
-                self._get_random_data()
-                time.sleep(5)
-        except timeout:
-            self._send()
-            os.remove(self._filename)
+        self._timer = Timer(PERIOD)
+        self._timer.start()
+        while True:
+            if self._timer.limit_reached():
+                self._send()
+                os.remove(self._filename)
+                self._timer.reset()
+            self._get_random_data()
+            time.sleep(5)
                 
     # Get a measurement from the user
     # Write it on data file
@@ -99,4 +104,12 @@ class Device:
     def _close_sock(self):
         print ('closing socket')
         self._sock.close()
+
+    def _signal_handler(self, signal):
+        print('Ctrl+c pressed: sockets shutting down..')
+        try:
+            self._close_sock()
+            os.remove(self._filename)
+        finally:
+            sys.exit(0)
     

@@ -56,7 +56,7 @@ class Packet:
         return self._payload
     
     def __str__(self):
-        return "HEADERS\nethernet: {eth_header}\nip: {ip_header}\nepoch time: {epoch_time}\n".format(eth_header=self._ethernet_header, ip_header=self._IP_header, epoch_time=self._epoch_t)\
+        return "HEADERS\nethernet: {eth_src} | {eth_dst}\nip: {ip_src} | {ip_dst}\nepoch time: {epoch_time}\n".format(eth_src=self.get_src_mac(), eth_dst=self.get_dst_mac(), ip_src=self.get_src_ip(), ip_dst=self.get_dst_ip(), epoch_time=self._epoch_t)\
             + "PAYLOAD\n{payload}".format(payload=self._payload)
     
     

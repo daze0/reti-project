@@ -50,6 +50,7 @@ class Device:
         while True:
             if self._timer.limit_reached():
                 self._send()
+                self._wait_ack()
                 os.remove(self._filename)
                 self._timer.reset()
             self._get_random_data()
@@ -100,7 +101,15 @@ class Device:
                         self._sock.sendto(serialized_pkt, self._address) 
                     except Exception as info:
                         print(info)
-                        
+    
+    def _wait_ack(self):
+        while True:
+            data, addr = self._sock.recvfrom(4096)
+            possible_ack = data.decode()
+            if possible_ack == "ACK":
+                print("\nACK received")
+                break
+            
     # Close device socket
     def _close_sock(self):
         print ('closing socket')

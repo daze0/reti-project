@@ -50,9 +50,7 @@ class Cloud:
                     destination_mac = pkt_received.get_dst_mac()
                     epoch_time = float(pkt_received.get_epoch_time())
                     message = pkt_received.get_payload()
-                    # Important infos for debugging
-                    print("\nPacket integrity:\ndestination MAC address matches client MAC address: {mac}".format(mac=(self._mac == destination_mac)))
-                    print("destination IP address matches client IP address: {ip}".format(ip=(self._ip == destination_ip)))
+                    # Time passed by since epoch_time timestamp
                     print("\nElapsed time: {elapsed_time}".format(elapsed_time=time.time()-epoch_time))
                     # Final measurement message output
                     print("\nMessage: \n" + message)

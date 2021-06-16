@@ -43,6 +43,7 @@ class Gateway:
             data = pickle.loads(data)  
             print("\n{data}".format(data=data))
             if data:
+                self._socket_UDP.sendto("ACK".encode(), addr)
                 self._data_split(data) 
             time.sleep(.5)
                     
@@ -106,35 +107,34 @@ class Gateway:
             self._open_TCP_connection()
             self._TCP_connection_flag = True
         # Loop through each client and format each payload
+        message = ""
         for ip in self._clients.keys():
             pkt = self._clients.get(ip)[0]
             lines = pkt.get_payload().split('\n')
             lines.remove('') #EOF
-            message = ""
             # Formatting new payload
             for line in lines:
                 line_data = line.split(" ")
                 current = ip+" " +line_data[0]+" "+line_data[1]+" "+line_data[2]+"\n"
                 message += current
-            # When payload of each client is correctly formatted
-            # create a packet each with appropriate headers and new payload
-            pkt_to_send = PacketBuilder()\
-                .ethernet_header(self._cloud_interface.get_mac_address(), self._arp_table_mac[pkt.get_dst_ip()])\
-                .IP_header(pkt.get_src_ip(), pkt.get_dst_ip())\
-                .epoch_time()\
-                .payload(message)\
-                .build()
-            try:
-                # Then serialize it and send it
-                serialized_pkt_to_send = pickle.dumps(pkt_to_send)
-                self._socket_TCP.send(serialized_pkt_to_send) 
-                # TODO: set socket timeout
-            except Exception as exc:
-                print(exc)
-                sys.exit(0)
+        # create a packet each with appropriate headers and new payload
+        pkt_to_send = PacketBuilder()\
+            .ethernet_header(self._cloud_interface.get_mac_address(), self._arp_table_mac[pkt.get_dst_ip()])\
+            .IP_header(self._cloud_interface.get_ip_address(), list(self._arp_table_mac.keys())[0])\
+            .epoch_time()\
+            .payload(message)\
+            .build()
+        try:
+            # Then serialize it and send it
+            serialized_pkt_to_send = pickle.dumps(pkt_to_send)
+            self._socket_TCP.send(serialized_pkt_to_send) 
+            # TODO: set socket timeout
+        except Exception as exc:
+            print(exc)
+            sys.exit(0)
         print("\nDATA SENT CORRECTLY\n")
 
-    def _signal_handler(self, signal, frame):
+    def _signal_handler(self, signal):
         print('Ctrl+c pressed: sockets shutting down..')
         try:
             self._socket_TCP.close()

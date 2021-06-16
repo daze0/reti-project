@@ -101,6 +101,7 @@ class Device:
                     except Exception as info:
                         print(info)
     
+    # Waits for an ACKnowledge from the gateway regarding last data dump
     def _wait_ack(self):
         while True:
             data, addr = self._sock.recvfrom(4096)

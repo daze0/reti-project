@@ -29,13 +29,14 @@ class Gateway:
         self._arp_table_mac = {cloud_addr[0] : cloud_addr[1]}
         self._clients = {"192.168.1.10": (None, False), "192.168.1.15": (None, False),
                          "192.168.1.20": (None, False), "192.168.1.25": (None, False)}
-        self._true_counter = 0
+        self._active_clients_counter = 0
         self._TCP_connection_flag = False
         # CTRL+C signal handler
         signal.signal(signal.SIGINT, self._signal_handler)
         # Gateway main loop
         self._manage_client()
-        
+    
+    # Receives data from a device, deserializes it, sends ACK and proceeds
     def _manage_client(self):
         while True:
             data, addr = self._socket_UDP.recvfrom(4096)
@@ -43,10 +44,15 @@ class Gateway:
             data = pickle.loads(data)  
             print("\n{data}".format(data=data))
             if data:
-                self._socket_UDP.sendto("ACK".encode(), addr)
+                self._send_ack(addr) 
                 self._data_split(data) 
             time.sleep(.5)
-                    
+    
+    # Sends an ACK to waiting device
+    def _send_ack(self, device_addr):
+        self._socket_UDP.sendto("ACK".encode(), device_addr)
+    
+    # Data elaboration support method: splits, identifies and processes pkt data
     def _data_split(self, pkt_received):
         ''' pkt_received: 
             ------------------------------------
@@ -68,11 +74,11 @@ class Gateway:
             if ip == source_ip and self._clients[ip] == (None, False):
                 print("\nsource IP is valid and never touched\n")
                 self._clients[ip] = (pkt_received, True)
-                self._true_counter += 1
+                self._active_clients_counter += 1
                 ip_valid = True
                 # When all clients have sent their measurements
                 # send new packet and reset every client's tuple
-                if self._true_counter == len(self._clients.keys()):
+                if self._all_clients_active():
                     print("\nall clients are connected, ready to send!\n")
                     self._send_message()
                     print("\npkt sent\n")
@@ -86,11 +92,17 @@ class Gateway:
                 self._socket_TCP.close()
             finally:
                 sys.exit(0)
+    
+    def _all_clients_active(self):
+        if self._active_clients_counter == len(self._clients.keys()):
+            return True
+        else:
+            return False
                 
     def _reset_clients_data(self):
         for k in self._clients.keys():
             self._clients[k] = (None, False)
-        self._true_counter = 0
+        self._active_clients_counter = 0
         
     def _open_TCP_connection(self):
         # TCP Client socket setup
@@ -112,12 +124,12 @@ class Gateway:
             pkt = self._clients.get(ip)[0]
             lines = pkt.get_payload().split('\n')
             lines.remove('') #EOF
-            # Formatting new payload
+            # Formatting old payloads and adding them in new bulk payload
             for line in lines:
                 line_data = line.split(" ")
                 current = ip+" " +line_data[0]+" "+line_data[1]+" "+line_data[2]+"\n"
                 message += current
-        # create a packet each with appropriate headers and new payload
+        # create a packet with appropriate headers and new bulk payload
         pkt_to_send = PacketBuilder()\
             .ethernet_header(self._cloud_interface.get_mac_address(), self._arp_table_mac[pkt.get_dst_ip()])\
             .IP_header(self._cloud_interface.get_ip_address(), list(self._arp_table_mac.keys())[0])\

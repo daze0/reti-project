@@ -45,18 +45,18 @@ class Cloud:
                     pkt_received = pickle.loads(data)
                     # Important infos
                     print('received %s bytes from %s: ' % (len(data), address))
-                    # Pkt dst headers 'n' message retrieval
-                    destination_ip = pkt_received.get_dst_ip()
-                    destination_mac = pkt_received.get_dst_mac()
-                    epoch_time = float(pkt_received.get_epoch_time())
-                    message = pkt_received.get_payload()
-                    # Time passed by since epoch_time timestamp
-                    print("\nElapsed time: {elapsed_time}".format(elapsed_time=time.time()-epoch_time))
-                    # Final measurement message output
-                    print("\nMessage: \n" + message)
+                    self.print_data(pkt_received)
             except Exception as exc:
                 print('Errore   ' + exc)
                 self._connection_socket.close()
+                
+    def print_data(self, pkt_received):
+         epoch_time = float(pkt_received.get_epoch_time())
+         message = pkt_received.get_payload()
+         # Time passed by since epoch_time timestamp
+         print("\nElapsed time: {elapsed_time}".format(elapsed_time=time.time()-epoch_time))
+         # Final measurement message output
+         print("\nMessage: \n" + message)
             
     def _accept_connection(self):
          while True:

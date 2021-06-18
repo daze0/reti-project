@@ -45,12 +45,12 @@ class Cloud:
                     pkt_received = pickle.loads(data)
                     # Important infos
                     print('received %s bytes from %s: ' % (len(data), address))
-                    self.print_data(pkt_received)
+                    self._print_data(pkt_received)
             except Exception as exc:
                 print('Errore   ' + exc)
                 self._connection_socket.close()
                 
-    def print_data(self, pkt_received):
+    def _print_data(self, pkt_received):
          epoch_time = float(pkt_received.get_epoch_time())
          message = pkt_received.get_payload()
          # Time passed by since epoch_time timestamp

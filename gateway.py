@@ -27,6 +27,11 @@ class Gateway:
         self._ip_port_TCP = ip_port_TCP
          # ARP tables creation
         self._arp_table_mac = {cloud_addr[0] : cloud_addr[1]}
+        self._arp_table_clients = {"192.168.1.10": "36:DF:28:FC:D1:67", 
+                                   "192.168.1.15": "04:EA:56:E2:2D:63",
+                                   "192.168.1.20": "6A:6C:39:F0:66:7A",
+                                   "192.168.1.25": "96:34:75:51:CC:73"}
+        # Merge \/  /\ # ???
         self._clients = {"192.168.1.10": (None, False), "192.168.1.15": (None, False),
                          "192.168.1.20": (None, False), "192.168.1.25": (None, False)}
         self._active_clients_counter = 0
@@ -44,13 +49,21 @@ class Gateway:
             data = pickle.loads(data)  
             print("\n{data}".format(data=data))
             if data:
-                self._send_ack(addr) 
+                self._send_ack(addr, data.get_src_ip()) 
                 self._data_split(data) 
             time.sleep(.5)
     
     # Sends an ACK to waiting device
-    def _send_ack(self, device_addr):
-        self._socket_UDP.sendto("ACK".encode(), device_addr)
+    def _send_ack(self, device_addr, device_ip):
+        ack = PacketBuilder(special=True)\
+            .ethernet_header(self._device_interface.get_mac_address(), self._arp_table_clients[device_ip])\
+            .IP_header(self._device_interface.get_ip_address(), device_ip)\
+            .epoch_time()\
+            .payload(bytes(1))\
+            .build()
+        serialized_ack = pickle.dumps(ack)
+        self._socket_UDP.sendto(serialized_ack, device_addr)
+        print("ACK sent back to device")
     
     # Data elaboration support method: splits, identifies and processes pkt data
     def _data_split(self, pkt_received):

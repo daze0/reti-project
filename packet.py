@@ -7,14 +7,28 @@ Created on Sun Jun  6 22:13:12 2021
 """
 
 import time
-    
+
+ETHNET_INDEX = 17
+# different IP addressing classes with relative indexes
+GAT_DEV_CLASS = "gateway-device"
+GAT_CLOUD_CLASS = "gateway-cloud"
+DEVICE_CLASS = "device"
+
+GAT_DEV_INDEX = 11
+GAT_CLOUD_INDEX = 10
+DEVICE_INDEX = 12
+
+
 class Packet:
     # Constructor
-    def __init__(self, ethernet_header='', IP_header='', payload=''):
+    def __init__(self, ethernet_header='', IP_header='', payload='', special=False):
         self._ethernet_header = ethernet_header
         self._IP_header = IP_header
         self._epoch_t = time.time()
         self._payload = payload
+        # Special Packets differentiates from normal ones
+        # because their payload is encoded
+        self._is_special_pkt = special 
     
     # Setters methods section
     def set_IP_header(self, src, dst):
@@ -30,21 +44,38 @@ class Packet:
         return self
     
     def set_payload(self, payload):
-        self._payload = payload
+        if isinstance(payload, bytes):
+            self._payload = payload.decode()
+        else:
+            self._payload = payload
         return self
   
     # Getters methods section
     def get_src_mac(self):
-        return self._ethernet_header[0:17]
+        return self._ethernet_header[0:ETHNET_INDEX]
     
     def get_dst_mac(self):
-        return self._ethernet_header[17:]
+        return self._ethernet_header[ETHNET_INDEX:]
     
-    def get_src_ip(self):
-        return self._IP_header[0:12]
+    def get_src_ip(self, ip_class=''):
+        if ip_class == GAT_DEV_CLASS:
+            return self._IP_header[0:GAT_DEV_INDEX]
+        elif ip_class == GAT_CLOUD_CLASS:
+            return self._IP_header[0:GAT_CLOUD_INDEX]
+        elif ip_class == DEVICE_CLASS:
+            return self._IP_header[0:DEVICE_INDEX]
+        else:
+            print("ERROR: you must pass the ip_class")
     
-    def get_dst_ip(self):
-        return self._IP_header[12:]
+    def get_dst_ip(self, ip_class=''):
+        if ip_class == GAT_DEV_CLASS:
+            return self._IP_header[GAT_DEV_INDEX:]
+        elif ip_class == GAT_CLOUD_CLASS:
+            return self._IP_header[GAT_CLOUD_INDEX:]
+        elif ip_class == DEVICE_CLASS:
+            return self._IP_header[DEVICE_INDEX:]
+        else:
+            print("ERROR: you must pass the ip_class")
     
     def get_epoch_time(self):
         return self._epoch_t
@@ -53,16 +84,18 @@ class Packet:
         return self._ethernet_header+self._IP_header+str(self._epoch_t)
     
     def get_payload(self):
+        if self._is_special_pkt:
+            return bytes(self._payload)
         return self._payload
     
     def __str__(self):
         return "HEADERS\nethernet: {eth_src} | {eth_dst}\nip: {ip_src} | {ip_dst}\nepoch time: {epoch_time}\n".format(eth_src=self.get_src_mac(), eth_dst=self.get_dst_mac(), ip_src=self.get_src_ip(), ip_dst=self.get_dst_ip(), epoch_time=self._epoch_t)\
-            + "PAYLOAD\n{payload}".format(payload=self._payload)
+            + "PAYLOAD\n{payload}".format(payload=str(self._payload))
     
     
 class PacketBuilder:
-    def __init__(self):
-        self._pkt = Packet()
+    def __init__(self, special_builder=False):
+        self._pkt = Packet(special=special_builder)
         
     def IP_header(self, src, dst):
         self._pkt.set_IP_header(src, dst)

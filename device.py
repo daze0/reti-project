@@ -103,12 +103,20 @@ class Device:
     
     # Waits for an ACKnowledge from the gateway regarding last data dump
     def _wait_ack(self):
+        print("Waiting for ACK")
         while True:
             data, addr = self._sock.recvfrom(4096)
-            possible_ack = data.decode()
-            if possible_ack == "ACK":
+            if self._ack_received(data):
                 print("\nACK received")
                 break
+    
+    # Serializes received data and checks if it is an ack
+    def _ack_received(self, data):
+        possible_ack = pickle.loads(data)
+        print(possible_ack)
+        if possible_ack.get_payload() == bytes(1):
+            return True
+        return False
             
     # Close device socket
     def _close_sock(self):

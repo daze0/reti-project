@@ -9,15 +9,7 @@ Created on Sun Jun  6 22:13:12 2021
 import time
 
 ETHNET_INDEX = 17
-# different IP addressing classes with relative indexes
-GAT_DEV_CLASS = "gateway-device"
-GAT_CLOUD_CLASS = "gateway-cloud"
-DEVICE_CLASS = "device"
-
-GAT_DEV_INDEX = 11
-GAT_CLOUD_INDEX = 10
-DEVICE_INDEX = 12
-
+MAX_SRC_IP_LEN = 12
 
 class Packet:
     # Constructor
@@ -32,6 +24,10 @@ class Packet:
     
     # Setters methods section
     def set_IP_header(self, src, dst):
+        if len(src) < MAX_SRC_IP_LEN:
+            src += "*"
+            while len(src) < MAX_SRC_IP_LEN:
+                src += "*"
         self._IP_header = src+dst
         return self
     
@@ -57,25 +53,13 @@ class Packet:
     def get_dst_mac(self):
         return self._ethernet_header[ETHNET_INDEX:]
     
-    def get_src_ip(self, ip_class=''):
-        if ip_class == GAT_DEV_CLASS:
-            return self._IP_header[0:GAT_DEV_INDEX]
-        elif ip_class == GAT_CLOUD_CLASS:
-            return self._IP_header[0:GAT_CLOUD_INDEX]
-        elif ip_class == DEVICE_CLASS:
-            return self._IP_header[0:DEVICE_INDEX]
-        else:
-            print("ERROR: you must pass the ip_class")
+    def get_src_ip(self):
+        src_ip = self._IP_header[0:MAX_SRC_IP_LEN]
+        src_ip.strip('*')
+        return src_ip
     
-    def get_dst_ip(self, ip_class=''):
-        if ip_class == GAT_DEV_CLASS:
-            return self._IP_header[GAT_DEV_INDEX:]
-        elif ip_class == GAT_CLOUD_CLASS:
-            return self._IP_header[GAT_CLOUD_INDEX:]
-        elif ip_class == DEVICE_CLASS:
-            return self._IP_header[DEVICE_INDEX:]
-        else:
-            print("ERROR: you must pass the ip_class")
+    def get_dst_ip(self):
+        return self._IP_header[MAX_SRC_IP_LEN:]
     
     def get_epoch_time(self):
         return self._epoch_t
@@ -85,7 +69,7 @@ class Packet:
     
     def get_payload(self):
         if self._is_special_pkt:
-            return bytes(self._payload)
+            return bytes(self._payload.encode())
         return self._payload
     
     def __str__(self):
@@ -94,8 +78,8 @@ class Packet:
     
     
 class PacketBuilder:
-    def __init__(self, special_builder=False):
-        self._pkt = Packet(special=special_builder)
+    def __init__(self, special_pkt=False):
+        self._pkt = Packet(special=special_pkt)
         
     def IP_header(self, src, dst):
         self._pkt.set_IP_header(src, dst)

@@ -55,7 +55,7 @@ class Gateway:
     
     # Sends an ACK to waiting device
     def _send_ack(self, device_addr, device_ip):
-        ack = PacketBuilder(special=True)\
+        ack = PacketBuilder(special_pkt=True)\
             .ethernet_header(self._device_interface.get_mac_address(), self._arp_table_clients[device_ip])\
             .IP_header(self._device_interface.get_ip_address(), device_ip)\
             .epoch_time()\
@@ -85,18 +85,18 @@ class Gateway:
         for ip in self._clients.keys():
             # Check if source_ip is a valid ip and if that same ip value is set to default
             if ip == source_ip and self._clients[ip] == (None, False):
-                print("\nsource IP is valid and never touched\n")
+                print("\nsource IP is valid and never touched")
                 self._clients[ip] = (pkt_received, True)
                 self._active_clients_counter += 1
                 ip_valid = True
                 # When all clients have sent their measurements
                 # send new packet and reset every client's tuple
                 if self._all_clients_active():
-                    print("\nall clients are connected, ready to send!\n")
+                    print("\nall clients are connected, ready to send!")
                     self._send_message()
-                    print("\npkt sent\n")
+                    print("\npkt sent..")
                     self._reset_clients_data()
-                    print("\nclients data reset\n")
+                    print("\nclients data reset..")
             elif ip == source_ip and self._clients[ip] != (None, False):
                 ip_valid = True
         if not ip_valid:
@@ -145,7 +145,7 @@ class Gateway:
         # create a packet with appropriate headers and new bulk payload
         pkt_to_send = PacketBuilder()\
             .ethernet_header(self._cloud_interface.get_mac_address(), self._arp_table_mac[pkt.get_dst_ip()])\
-            .IP_header(self._cloud_interface.get_ip_address(), list(self._arp_table_mac.keys())[0])\
+            .IP_header(self._cloud_interface.get_ip_address(), pkt.get_dst_ip())\
             .epoch_time()\
             .payload(message)\
             .build()

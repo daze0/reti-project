@@ -8,6 +8,7 @@ Created on Mon May 10 17:07:38 2021
 
 from socket import socket, AF_INET, SOCK_DGRAM, timeout
 import time
+
 import os
 import measurement
 from packet import Packet, PacketBuilder
@@ -19,7 +20,7 @@ import signal, sys
 # CONSTANTS 
 SEP = " "
 BUFSIZE = 4096
-PERIOD = 25 # secs
+PERIOD = 60 # secs
 
 class Device:
     def __init__(self, device_label, filename, device_ip, device_mac, gateway_addr, router_mac, target_ip): 
@@ -73,7 +74,7 @@ class Device:
             with open(self._filename, "a") as f:
                 f.write(current_time+SEP+temperature+SEP+humidity+"\n")
             return True
-        
+
     # Get a random measurement
     # Write it on data file
     def _get_random_data(self):
@@ -127,8 +128,8 @@ class Device:
         print ('closing socket')
         self._sock.close()
 
-    def _signal_handler(self, signal):
-        print('Ctrl+c pressed: sockets shutting down, file removal, timer stop..')
+    def _signal_handler(self, signal, frame):
+        print('Ctrl+c pressed: sockets shutting down..')
         try:
             self._close_sock()
             os.remove(self._filename)

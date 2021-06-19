@@ -10,8 +10,8 @@ from device import Device
 from gateway import Gateway
 from cloud import Cloud
 
-DEFAULT_UDP_PORT = 10000
-DEFAULT_TCP_PORT = 45000
+DEFAULT_UDP_PORT = 10001
+DEFAULT_TCP_PORT = 45001
 
 class DeviceFactory:
     # Creates and returns an active customized device

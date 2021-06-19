@@ -62,8 +62,14 @@ class Gateway:
             .payload(bytes(1))\
             .build()
         serialized_ack = pickle.dumps(ack)
-        self._socket_UDP.sendto(serialized_ack, device_addr)
-        print("ACK sent back to device")
+        try:          
+            self._socket_UDP.sendto(serialized_ack, device_addr)
+            print("ACK sent back to device")
+        except Exception as exc:
+            print(exc)
+            self._socket_TCP.close()
+            sys.exit(0)
+            
     
     # Data elaboration support method: splits, identifies and processes pkt data
     def _data_split(self, pkt_received):
@@ -156,10 +162,11 @@ class Gateway:
             # TODO: set socket timeout
         except Exception as exc:
             print(exc)
+            self._socket_TCP.close()
             sys.exit(0)
         print("\nDATA SENT CORRECTLY\n")
 
-    def _signal_handler(self, signal):
+    def _signal_handler(self, signal, frame):
         print('Ctrl+c pressed: sockets shutting down..')
         try:
             self._socket_TCP.close()

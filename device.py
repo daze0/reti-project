@@ -23,7 +23,8 @@ BUFSIZE = 4096
 PERIOD = 60 # secs
 
 class Device:
-    def __init__(self, filename, device_ip, device_mac, gateway_addr, router_mac, target_ip): 
+    def __init__(self, device_label, filename, device_ip, device_mac, gateway_addr, router_mac, target_ip): 
+        self._label = device_label
         # Socket used to connect to the GATEWAY
         self._sock = socket(AF_INET, SOCK_DGRAM)
         # Arg type validity check
@@ -54,7 +55,10 @@ class Device:
                 os.remove(self._filename)
                 self._timer.reset()
             self._get_random_data()
-            time.sleep(20)
+            time.sleep(5)
+            
+    def get_label(self):
+        return self._label
                 
     # Get a measurement from the user
     # Write it on data file
@@ -102,13 +106,22 @@ class Device:
                     except Exception as info:
                         print(info)
     
+    # Waits for an ACKnowledge from the gateway regarding last data dump
     def _wait_ack(self):
+        print("Waiting for ACK")
         while True:
             data, addr = self._sock.recvfrom(4096)
-            possible_ack = data.decode()
-            if possible_ack == "ACK":
+            if self._ack_received(data):
                 print("\nACK received")
                 break
+    
+    # Serializes received data and checks if it is an ack
+    def _ack_received(self, data):
+        possible_ack = pickle.loads(data)
+        print(possible_ack)
+        if possible_ack.get_payload() == bytes(1):
+            return True
+        return False
             
     # Close device socket
     def _close_sock(self):

@@ -12,37 +12,47 @@ sys.path.append('../')
 import factories as f
 import signal
 
-def _signal_handler(self, signal, frame, subprocesses_list):
+class TestDevices:
+    
+    def __init__(self):
+        self._subprocesses_list = []
+            
+    def _execute(self, target):
+        return Popen(["python", target + ".py"])
+    
+    def test(self):
+        print("Device 1")
+        dev1 = self._execute("test_dev1")
+        self._subprocesses_list.append(dev1)
+        
+        print("Device 2")
+        dev2 = self._execute("test_dev2")
+        self._subprocesses_list.append(dev2)
+        
+        print("Device 3")
+        dev3 = self._execute("test_dev3")
+        self._subprocesses_list.append(dev3)
+    
+        print("Device 4")
+        dev4 = self._execute("test_dev4")
+        self._subprocesses_list.append(dev4)
+        
+        print("Press CTRL+C to kill each device execution")
+        # CTRL+C signal handler
+        signal.signal(signal.SIGINT, self._signal_handler)
+        running = True
+        while running:
+            continue
+        
+    def _signal_handler(self, signal):
         try:
-            for popen in subprocesses_list:
+            for popen in self._subprocesses_list:
                 popen.kill()
         finally:
             print('Ctrl+c pressed: all subprocesses have been killed..')
             sys.exit(0)
-            
-def execute(target):
-    return Popen(["python", target + ".py"])
-    
-def test():
-    print("Device 1")
-    dev1 = execute("test_dev1")
-    
-    print("Device 2")
-    dev2 = execute("test_dev2")
-    
-    print("Device 3")
-    dev3 = execute("test_dev3")
-    
-    print("Device 4")
-    dev4 = execute("test_dev4")
-    
-    print("Press CTRL+C to kill each device execution")
-    # CTRL+C signal handler
-    signal.signal(signal.SIGINT, self._signal_handler, list(dev1, dev2, dev3, dev4))
-    running = True
-    while running:
-        continue
     
 if __name__ == "__main__":
-    test()
+    t = TestDevices()
+    t.test()
 

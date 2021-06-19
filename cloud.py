@@ -49,6 +49,7 @@ class Cloud:
             except Exception as exc:
                 print('Errore   ' + exc)
                 self._connection_socket.close()
+                sys.exit(0)
                 
     def _print_data(self, pkt_received):
          epoch_time = float(pkt_received.get_epoch_time())
@@ -56,7 +57,7 @@ class Cloud:
          # Time passed by since epoch_time timestamp
          print("\nElapsed time: {elapsed_time}".format(elapsed_time=time.time()-epoch_time))
          # Final measurement message output
-         print("\nMessage: \n" + message)
+         print("\nIp address Time T U \n" + message)
             
     def _accept_connection(self):
          while True:
@@ -69,7 +70,6 @@ class Cloud:
         print('Ctrl+c pressed: Cloud server shutting down..')
         try:
             self._connection_socket.close() 
-            self._socket_TCP.close()
         finally:
             sys.exit(0)
     

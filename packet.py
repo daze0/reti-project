@@ -55,8 +55,7 @@ class Packet:
     
     def get_src_ip(self):
         src_ip = self._IP_header[0:MAX_SRC_IP_LEN]
-        src_ip.strip('*')
-        return src_ip
+        return src_ip.strip('*')
     
     def get_dst_ip(self):
         return self._IP_header[MAX_SRC_IP_LEN:]

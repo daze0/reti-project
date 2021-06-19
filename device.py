@@ -128,7 +128,7 @@ class Device:
         self._sock.close()
 
     def _signal_handler(self, signal):
-        print('Ctrl+c pressed: sockets shutting down..')
+        print('Ctrl+c pressed: sockets shutting down, file removal, timer stop..')
         try:
             self._close_sock()
             os.remove(self._filename)

@@ -16,6 +16,7 @@ class TestDevices:
     
     def __init__(self):
         self._subprocesses_list = []
+        self._running = True
             
     def _execute(self, target):
         return Popen(["python", target + ".py"])
@@ -40,12 +41,12 @@ class TestDevices:
         print("Press CTRL+C to kill each device execution")
         # CTRL+C signal handler
         signal.signal(signal.SIGINT, self._signal_handler)
-        running = True
-        while running:
+        while self._running:
             continue
         
     def _signal_handler(self, signal):
         try:
+            self._running = False
             for popen in self._subprocesses_list:
                 popen.kill()
         finally:

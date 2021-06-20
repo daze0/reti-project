@@ -27,12 +27,6 @@ class Gateway:
         self._ip_port_TCP = ip_port_TCP
          # ARP tables creation
         self._arp_table_mac = {cloud_addr[0] : cloud_addr[1]}
-        '''self._arp_table_clients = {"192.168.1.10": "36:DF:28:FC:D1:67", 
-                                   "192.168.1.15": "04:EA:56:E2:2D:63",
-                                   "192.168.1.20": "6A:6C:39:F0:66:7A",
-                                   "192.168.1.25": "96:34:75:51:CC:73"}
-        # Merge \/  /\ # ???
-        '''
         self._clients = {("192.168.1.10", "36:DF:28:FC:D1:67"): (None, False), ("192.168.1.15", "04:EA:56:E2:2D:63"): (None, False),
                          ("192.168.1.20", "6A:6C:39:F0:66:7A"): (None, False), ("192.168.1.25", "96:34:75:51:CC:73"): (None, False)}
         self._active_clients_counter = 0
@@ -40,10 +34,10 @@ class Gateway:
         # CTRL+C signal handler
         signal.signal(signal.SIGINT, self._signal_handler)
         # Gateway main loop
-        self._manage_client()
+        self._receive_clients()
     
     # Receives data from a device, deserializes it, sends ACK and proceeds
-    def _manage_client(self):
+    def _receive_clients(self):
         while True:
             data, addr = self._socket_UDP.recvfrom(4096)
             print("\nReceived {n_bytes} bytes..".format(n_bytes=len(data)))

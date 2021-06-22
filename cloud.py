@@ -49,6 +49,7 @@ class Cloud:
             except Exception as exc:
                 print('Errore   ' + exc)
                 self._connection_socket.close()
+                self._socket_TCP.close()
                 sys.exit(0)
                 
     def _print_data(self, pkt_received):
@@ -69,7 +70,8 @@ class Cloud:
     def _signal_handler(self, signal, frame):
         print('Ctrl+c pressed: Cloud server shutting down..')
         try:
-            self._connection_socket.close() 
+            self._connection_socket.close()
+            self._socket_TCP.close()
         finally:
             sys.exit(0)
     

@@ -40,10 +40,9 @@ class Packet:
         return self
     
     def set_payload(self, payload):
-        if isinstance(payload, bytes):
-            self._payload = payload.decode()
-        else:
-            self._payload = payload
+        if isinstance(payload, bytes): 
+            self._is_special_pkt = True  # This is for when a PacketBuilder is not used 
+        self._payload = payload
         return self
   
     # Getters methods section
@@ -68,7 +67,7 @@ class Packet:
     
     def get_payload(self):
         if self._is_special_pkt:
-            return bytes(self._payload.encode())
+            return bytes(self._payload)
         return self._payload
     
     def __str__(self):

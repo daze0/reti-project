@@ -59,21 +59,6 @@ class Device:
             
     def get_label(self):
         return self._label
-                
-    # Get a measurement from the user
-    # Write it on data file
-    def _get_data(self):
-        print("\nNew measurement('q' to quit): ") 
-        t = time.localtime()
-        current_time = time.strftime("%H:%M:%S", t)
-        temperature = str(input("\nTemperature(°C): "))
-        humidity = str(input("Humidity(%): "))
-        if temperature == "q" and humidity == "q": 
-            return False
-        else:
-            with open(self._filename, "a") as f:
-                f.write(current_time+SEP+temperature+SEP+humidity+"\n")
-            return True
 
     # Get a random measurement
     # Write it on data file
@@ -119,19 +104,15 @@ class Device:
     def _ack_received(self, data):
         possible_ack = pickle.loads(data)
         print(possible_ack)
-        if possible_ack.get_payload() == bytes(1):
-            return True
+        if possible_ack.get_payload() == bytes(1): 
+            return True  # ACK is a byte = 1
         return False
-            
-    # Close device socket
-    def _close_sock(self):
-        print ('closing socket')
-        self._sock.close()
 
     def _signal_handler(self, signal, frame):
         print('Ctrl+c pressed: sockets shutting down..')
         try:
-            self._close_sock()
+            print ('closing socket')
+            self._sock.close()
             os.remove(self._filename)
             self._timer.stop()
         finally:

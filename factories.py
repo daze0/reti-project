@@ -33,7 +33,7 @@ class DeviceFactory:
 class GatewayFactory:
     # Creates and returns a customized and completely active gateway 
     # Active means it's already working on both ends, the devices' and the cloud ones
-    def custom_gateway(ip_port_UDP, ip_port_TCP, ip_devnet, ip_cloudnet, mac_addr, cloud_addr):
+    def custom_gateway(self, ip_port_UDP, ip_port_TCP, ip_devnet, ip_cloudnet, mac_addr, cloud_addr):
         return Gateway(ip_port_UDP, ip_port_TCP, ip_devnet, ip_cloudnet, mac_addr, cloud_addr)
     # Creates and returns default gateway
     def default_gateway(self):
@@ -43,7 +43,7 @@ class GatewayFactory:
     
 class CloudFactory:
     #Creates and returns a customized cloud server
-    def custom_cloud(ip_n_port, ip, mac_addr):
+    def custom_cloud(self, ip_n_port, ip, mac_addr):
         return Cloud(ip_n_port, ip, mac_addr)
     #Creates and returns default cloud server
     def default_cloud(self):

@@ -27,8 +27,8 @@ class Gateway:
         self._ip_port_TCP = ip_port_TCP
          # ARP tables creation
         self._arp_table_mac = {cloud_addr[0] : cloud_addr[1]}
-        self._clients = {("192.168.1.10", "36:DF:28:FC:D1:67"): (None, False), ("192.168.1.15", "04:EA:56:E2:2D:63"): (None, False),
-                         ("192.168.1.20", "6A:6C:39:F0:66:7A"): (None, False), ("192.168.1.25", "96:34:75:51:CC:73"): (None, False)}
+        self._clients = {("192.168.1.10", "36:DF:28:FC:D1:67"): None, ("192.168.1.15", "04:EA:56:E2:2D:63"): None,
+                         ("192.168.1.20", "6A:6C:39:F0:66:7A"): None, ("192.168.1.25", "96:34:75:51:CC:73"): None}
         self._active_clients_counter = 0
         self._TCP_connection_flag = False
         # CTRL+C signal handler
@@ -94,9 +94,9 @@ class Gateway:
         for key in self._clients.keys():
             client_ip = key[0]
             # Check if source_ip is a valid ip and if that same ip value is set to default
-            if client_ip == source_ip and self._clients[key] == (None, False):
+            if client_ip == source_ip and self._clients[key] == None:
                 print("\nsource IP is valid and never touched")
-                self._clients[key] = (pkt_received, True)
+                self._clients[key] = (pkt_received)
                 self._active_clients_counter += 1
                 ip_valid = True
                 # When all clients have sent their measurements
@@ -107,7 +107,7 @@ class Gateway:
                     print("\npkt sent..")
                     self._reset_clients_data()
                     print("\nclients data reset..")
-            elif client_ip == source_ip and self._clients[key] != (None, False):
+            elif client_ip == source_ip and self._clients[key] != None:
                 ip_valid = True
         if not ip_valid:
             print("Invalid client tried to connect! Exit..")
@@ -124,7 +124,7 @@ class Gateway:
                 
     def _reset_clients_data(self):
         for k in self._clients.keys():
-            self._clients[k] = (None, False)
+            self._clients[k] = None
         self._active_clients_counter = 0
         
     def _open_TCP_connection(self):
@@ -146,7 +146,7 @@ class Gateway:
         for key in self._clients.keys():
             client_ip = key[0]
             client_mac = key[1]
-            pkt = self._clients.get(key)[0]
+            pkt = self._clients.get(key)
             lines = pkt.get_payload().split('\n')
             lines.remove('') #EOF
             # Formatting old payloads and adding them in new bulk payload

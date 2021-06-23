@@ -15,6 +15,7 @@ import pickle
 from network_interface import NetworkInterface as ni
 
 BACKLOG = 4
+BUFSIZE = 4096
 
 class Cloud:        
     def __init__(self, ip_n_port, ip, mac_addr):
@@ -40,7 +41,7 @@ class Cloud:
         self._connection_socket, address = self._accept_connection()
         while True:
             try:
-                data = self._connection_socket.recv(4096)
+                data = self._connection_socket.recv(BUFSIZE)
                 if data:
                     pkt_received = pickle.loads(data)
                     # Important infos

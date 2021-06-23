@@ -19,7 +19,7 @@ import signal, sys
 
 # CONSTANTS 
 SEP = " "
-BUFSIZE = 4096
+BUFSIZE = 1024
 PERIOD = 60 # secs
 
 class Device:
@@ -95,14 +95,14 @@ class Device:
     def _wait_ack(self):
         print("Waiting for ACK")
         while True:
-            data, addr = self._sock.recvfrom(4096)
+            data, addr = self._sock.recvfrom(BUFSIZE)
             if self._ack_received(data):
-                print("\nACK received")
                 break
     
     # Serializes received data and checks if it is an ack
     def _ack_received(self, data):
         possible_ack = pickle.loads(data)
+        print("\nACK received in: {elapsed_time}".format(elapsed_time=time.time()-possible_ack.get_epoch_time()))
         print(possible_ack)
         if possible_ack.get_payload() == bytes(1): 
             return True  # ACK is a byte = 1

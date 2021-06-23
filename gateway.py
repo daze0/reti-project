@@ -13,6 +13,8 @@ from packet import Packet, PacketBuilder
 import pickle
 from network_interface import NetworkInterface as ni
 
+BUFSIZE = 1024
+
 class Gateway:
     def __init__(self, ip_port_UDP, ip_port_TCP, ip_devnet, ip_cloudnet, mac_addr, cloud_addr):
         # Set the gateway's 2 network interfaces' IPs
@@ -39,7 +41,7 @@ class Gateway:
     # Receives data from a device, deserializes it, sends ACK and proceeds
     def _receive_clients(self):
         while True:
-            data, addr = self._socket_UDP.recvfrom(4096)
+            data, addr = self._socket_UDP.recvfrom(BUFSIZE)
             print("\nReceived {n_bytes} bytes..".format(n_bytes=len(data)))
             data = pickle.loads(data)  
             print("\n{data}".format(data=data))

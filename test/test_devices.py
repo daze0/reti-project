@@ -44,7 +44,7 @@ class TestDevices:
         while self._running:
             continue
         
-    def _signal_handler(self, signal):
+    def _signal_handler(self, signal, frame):
         try:
             self._running = False
             for popen in self._subprocesses_list:

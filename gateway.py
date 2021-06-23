@@ -167,7 +167,6 @@ class Gateway:
             # Then serialize it and send it
             serialized_pkt_to_send = pickle.dumps(pkt_to_send)
             self._socket_TCP.send(serialized_pkt_to_send) 
-            # TODO: set socket timeout
         except Exception as exc:
             print(exc)
             self._socket_TCP.close()

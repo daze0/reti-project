@@ -47,7 +47,7 @@ class TestDevices:
     def _signal_handler(self, signal, frame):
         try:
             self._running = False
-            # signal_handler call propagation
+            # SIGINT propagation
             for sub in self._subprocesses_list:
                 sub.send_signal(signal.SIGINT)
         finally:

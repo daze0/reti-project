@@ -44,12 +44,13 @@ class Gateway:
             data, addr = self._socket_UDP.recvfrom(BUFSIZE)
             print("\nReceived {n_bytes} bytes..".format(n_bytes=len(data)))
             data = pickle.loads(data)  
-            print("\n{data}".format(data=data))
+            # print("\n{data}".format(data=data))
             if data:
                 self._send_ack(addr, data.get_src_ip()) 
                 self._data_split(data) 
             time.sleep(.5)
     
+    # Returns MAC address associated with given IP
     def _mac_of(self, ip):
         for key in self._clients.keys():
             client_ip = key[0]
@@ -117,17 +118,20 @@ class Gateway:
             finally:
                 sys.exit(0)
     
+    # Checks if all the devices have sent their packet
     def _all_clients_active(self):
         if self._active_clients_counter == len(self._clients.keys()):
             return True
         else:
             return False
                 
+    # Resets each client in the arp table "clients", also resets device counter
     def _reset_clients_data(self):
         for k in self._clients.keys():
             self._clients[k] = None
         self._active_clients_counter = 0
         
+    # Opens a TCP connection towards the cloud
     def _open_TCP_connection(self):
         # TCP Client socket setup
         try:
@@ -137,6 +141,7 @@ class Gateway:
             sys.exit(0)
         print("TCP connection over Cloud established on port "+str(self._ip_port_TCP[1]))
         
+    # Responsible of accumulating payloads and sending them all-in-one to cloud
     def _send_message(self):
         # Open TCP connection only when all devices' pkts are received
         if not self._TCP_connection_flag:

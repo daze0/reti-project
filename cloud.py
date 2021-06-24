@@ -37,6 +37,7 @@ class Cloud:
         # Ultimately close socket
         self._socket_TCP.close()
     
+    # Accept gateway connection and receives data from it
     def _get_message(self):
         self._connection_socket, address = self._accept_connection()
         while True:
@@ -53,6 +54,7 @@ class Cloud:
                 self._socket_TCP.close()
                 sys.exit(0)
                 
+    # Shows data to console
     def _print_data(self, pkt_received):
          epoch_time = float(pkt_received.get_epoch_time())
          message = pkt_received.get_payload()

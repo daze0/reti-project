@@ -97,18 +97,17 @@ class Gateway:
             client_ip = key[0]
             # Check if source_ip is a valid ip and if that same ip value is set to default
             if client_ip == source_ip and self._clients[key] == None:
-                print("\nsource IP is valid and never touched")
                 self._clients[key] = (pkt_received)
                 self._active_clients_counter += 1
                 ip_valid = True
                 # When all clients have sent their measurements
                 # send new packet and reset every client's tuple
                 if self._all_clients_active():
-                    print("\nall clients are connected, ready to send!")
+                    print("\n[STATUS]: all clients are connected, ready to send!")
                     self._send_message()
-                    print("\npkt sent..")
+                    print("[STATUS]: pkt sent to cloud")
                     self._reset_clients_data()
-                    print("\nclients data reset..")
+                    print("[STATUS]: clients data has been reset")
             elif client_ip == source_ip and self._clients[key] != None:
                 ip_valid = True
         if not ip_valid:
@@ -171,7 +170,6 @@ class Gateway:
             print(exc)
             self._socket_TCP.close()
             sys.exit(0)
-        print("\nDATA SENT CORRECTLY\n")
 
     def _signal_handler(self, signal, frame):
         print('Ctrl+c pressed: sockets shutting down..')
